@@ -2,8 +2,8 @@
 
 import { useEffect } from 'react';
 import { create } from 'zustand';
-import { Message, ChatContext } from './types';
-import { startStream } from './mockClient';
+import { Message, ChatContext } from '@/lib/chat/types';
+import { startStream } from '@/lib/chat/mockClient';
 
 type ChatState = {
   isOpen: boolean;
@@ -54,7 +54,6 @@ export const useChatStore = create<ChatState>((set, get) => ({
     handle.onDone(() => {
       set((s) => ({ isStreaming: false, unreadCount: s.isOpen ? 0 : s.unreadCount + 1 }));
       console.log('chat_stream_done');
-      // persist
       const key = get().persistKey;
       if (key) localStorage.setItem(key, JSON.stringify(get().messages));
     });
@@ -66,11 +65,10 @@ export const useChatStore = create<ChatState>((set, get) => ({
   applySuggestion: (text, context) => get().send(text, context),
   hydrate: (key: string) => {
     try {
-      if (typeof window === 'undefined') return; // guard for any accidental SSR usage
+      if (typeof window === 'undefined') return;
       const raw = localStorage.getItem(key);
       if (raw) {
         const parsed = JSON.parse(raw);
-        // Lightweight validation to ensure correct shape
         if (Array.isArray(parsed)) {
           const valid = parsed.every(
             (m: any) => m && typeof m.id === 'string' && typeof m.role === 'string' && typeof m.content === 'string' && typeof m.createdAt === 'number'
@@ -87,8 +85,8 @@ export const useChatStore = create<ChatState>((set, get) => ({
   },
 }));
 
-// Hook to auto-hydrate by route key
 export function useChatPersistence(routeKey: string) {
   const hydrate = useChatStore((s) => s.hydrate);
   useEffect(() => { hydrate(`chat:${routeKey}`); }, [hydrate, routeKey]);
 }
+

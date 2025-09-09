@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { usePathname, useSearchParams } from 'next/navigation';
-import { useChatStore, useChatPersistence } from '@/lib/chat/chatStore';
+import { useChatStore, useChatPersistence } from '@features/chat/application/chatStore';
 import MessageBubble from './MessageBubble';
 import SuggestionChips from './SuggestionChips';
 import TypingDots from './TypingDots';
@@ -140,5 +140,4 @@ export default function ChatPanel() {
     </div>
   );
 }
-
 

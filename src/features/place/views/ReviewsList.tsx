@@ -1,4 +1,4 @@
-'use client';
+"use client";
 
 import { Review } from '@/lib/types';
 import { useState } from 'react';
@@ -175,3 +175,4 @@ export default function ReviewsList({ reviews, loading, error, onRetry }: Review
     </div>
   );
 }
+

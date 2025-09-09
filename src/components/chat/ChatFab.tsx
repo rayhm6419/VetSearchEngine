@@ -1,6 +1,6 @@
 'use client';
 
-import { useChatStore } from '@/lib/chat/chatStore';
+import { useChatStore } from '@features/chat/application/chatStore';
 import { useEffect, useRef } from 'react';
 
 export default function ChatFab() {
@@ -40,5 +40,4 @@ export default function ChatFab() {
     </button>
   );
 }
-
 

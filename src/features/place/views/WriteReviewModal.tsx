@@ -1,4 +1,4 @@
-'use client';
+"use client";
 
 import { useState, useEffect, useRef } from 'react';
 
@@ -148,3 +148,4 @@ export default function WriteReviewModal({ isOpen, onClose, onSubmit }: WriteRev
     </div>
   );
 }
+

@@ -1,4 +1,4 @@
-'use client';
+"use client";
 
 import { Place } from '@/lib/types';
 import { useState } from 'react';
@@ -57,7 +57,6 @@ export default function HoursCard({ place }: HoursCardProps) {
         </div>
       </div>
 
-      {/* Mobile: Show current day only when collapsed */}
       {!isExpanded && (
         <div className="md:hidden">
           <div className="flex justify-between items-center py-2 px-3 rounded bg-blue-50 border-l-4 border-blue-500">
@@ -74,3 +73,4 @@ export default function HoursCard({ place }: HoursCardProps) {
     </div>
   );
 }
+

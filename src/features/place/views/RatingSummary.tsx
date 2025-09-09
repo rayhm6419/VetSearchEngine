@@ -83,3 +83,4 @@ export default function RatingSummary({ rating, reviewCount, reviews }: RatingSu
     </div>
   );
 }
+

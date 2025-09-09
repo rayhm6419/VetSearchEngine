@@ -1,3 +1,5 @@
+"use client";
+
 import { Place } from '@/lib/types';
 
 interface MapCardProps {
@@ -19,7 +21,6 @@ export default function MapCard({ place }: MapCardProps) {
       <h2 className="text-xl font-semibold text-gray-900 mb-4">Location</h2>
       
       <div className="relative">
-        {/* Placeholder for map - in a real app, you'd integrate with Google Maps or similar */}
         <div 
           className="w-full h-64 bg-gray-200 rounded-lg flex items-center justify-center cursor-pointer hover:bg-gray-300 transition-colors duration-200"
           onClick={handleOpenMaps}
@@ -43,3 +44,4 @@ export default function MapCard({ place }: MapCardProps) {
     </div>
   );
 }
+

@@ -1,3 +1,5 @@
+"use client";
+
 import { Place } from '@/lib/types';
 
 interface PlaceMetaProps {
@@ -7,7 +9,6 @@ interface PlaceMetaProps {
 export default function PlaceMeta({ place }: PlaceMetaProps) {
   const copyAddress = () => {
     navigator.clipboard.writeText(place.address);
-    // You could add a toast notification here
   };
 
   const copyPhone = () => {
@@ -105,3 +106,4 @@ export default function PlaceMeta({ place }: PlaceMetaProps) {
     </div>
   );
 }
+

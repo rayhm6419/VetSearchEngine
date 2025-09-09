@@ -1,3 +1,5 @@
+"use client";
+
 import { Place } from '@/lib/types';
 
 interface PlaceHeaderProps {
@@ -23,7 +25,6 @@ export default function PlaceHeader({ place }: PlaceHeaderProps) {
   };
 
   const handleSave = () => {
-    // Non-functional for now
     console.log('Save place:', place.id);
   };
 
@@ -111,3 +112,4 @@ export default function PlaceHeader({ place }: PlaceHeaderProps) {
     </div>
   );
 }
+
