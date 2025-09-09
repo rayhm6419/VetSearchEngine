@@ -114,7 +114,8 @@ function SearchContent() {
           {visible.map((place) => (
             <div
               key={place.id}
-              className="bg-white rounded-lg shadow-md p-6 border border-gray-200 hover:shadow-lg transition-shadow duration-200"
+              className="bg-white rounded-lg shadow-md p-6 border border-gray-200 hover:shadow-lg transition-shadow duration-200 cursor-pointer"
+              onClick={() => router.push(`/place/${place.id}`)}
             >
               <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between">
                 <div className="flex-1 mb-4 sm:mb-0">
