@@ -160,6 +160,9 @@ function SearchContent() {
   );
 }
 
+export default function Page() {
+  return (
+    <Suspense fallback={<div>Loading...</div>}>
       <SearchContent />
     </Suspense>
   );
