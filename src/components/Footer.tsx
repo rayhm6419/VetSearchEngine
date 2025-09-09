@@ -189,4 +189,3 @@ export default function Footer({ className = '' }: FooterProps) {
       </div>
     </footer>
   );
-}
