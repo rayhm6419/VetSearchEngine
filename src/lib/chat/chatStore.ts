@@ -38,7 +38,8 @@ export const useChatStore = create<ChatState>((set, get) => ({
   send: (text, context) => {
     const state = get();
     const userMsg: Message = { id: genId(), role: 'user', content: text, createdAt: Date.now() };
-    const msgs = [...state.messages, userMsg, { id: genId(), role: 'assistant', content: '', createdAt: Date.now() }];
+    const assistantMsg: Message = { id: genId(), role: 'assistant', content: '', createdAt: Date.now() };
+    const msgs: Message[] = [...state.messages, userMsg, assistantMsg];
     set({ messages: msgs, isStreaming: true });
     console.log('chat_sent');
     const handle = startStream({ messages: msgs, context });
@@ -65,10 +66,24 @@ export const useChatStore = create<ChatState>((set, get) => ({
   applySuggestion: (text, context) => get().send(text, context),
   hydrate: (key: string) => {
     try {
+      if (typeof window === 'undefined') return; // guard for any accidental SSR usage
       const raw = localStorage.getItem(key);
-      if (raw) set({ messages: JSON.parse(raw) });
+      if (raw) {
+        const parsed = JSON.parse(raw);
+        // Lightweight validation to ensure correct shape
+        if (Array.isArray(parsed)) {
+          const valid = parsed.every(
+            (m: any) => m && typeof m.id === 'string' && typeof m.role === 'string' && typeof m.content === 'string' && typeof m.createdAt === 'number'
+          );
+          if (valid) {
+            set({ messages: parsed as Message[] });
+          }
+        }
+      }
       set({ persistKey: key });
-    } catch {}
+    } catch {
+      // ignore bad/legacy data
+    }
   },
 }));
 
@@ -77,5 +92,3 @@ export function useChatPersistence(routeKey: string) {
   const hydrate = useChatStore((s) => s.hydrate);
   useEffect(() => { hydrate(`chat:${routeKey}`); }, [hydrate, routeKey]);
 }
-
-
