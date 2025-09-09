@@ -4,17 +4,23 @@ import React, { useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { NAV_LINKS } from "@/components/navLinks";
+import { useSession, signOut } from "next-auth/react";
 
 interface NavBarProps {
 	className?: string;
 }
 
 export default function NavBar({ className }: NavBarProps) {
+	const { data: session } = useSession();
 	const pathname = usePathname();
 	const [open, setOpen] = useState(false);
 	const panelRef = useRef<HTMLDivElement>(null);
 	const firstFocusableRef = useRef<HTMLAnchorElement | HTMLButtonElement | null>(null);
 	const lastFocusableRef = useRef<HTMLAnchorElement | HTMLButtonElement | null>(null);
+
+	const username = (session as any)?.user?.username as string | undefined;
+	const email = session?.user?.email as string | undefined;
+	const isAuthed = Boolean(username || email);
 
 	const isActive = (href: string) => {
 		return pathname === href;
@@ -106,6 +112,26 @@ export default function NavBar({ className }: NavBarProps) {
 								</Link>
 							);
 						})}
+
+						{/* Auth actions */}
+						<div className="ml-4 flex items-center gap-3">
+							{isAuthed ? (
+								<>
+									<span className="text-sm text-gray-700">Hello, {username || email}</span>
+									<button
+										onClick={() => signOut()}
+										className="px-3 py-1 rounded-lg border text-sm hover:bg-gray-50"
+									>
+										Logout
+									</button>
+								</>
+							) : (
+								<>
+									<Link href="/login" className="px-3 py-1 rounded-lg border text-sm hover:bg-gray-50">Login</Link>
+									<Link href="/signup" className="px-3 py-1 rounded-lg bg-black text-white text-sm hover:bg-gray-800">Sign Up</Link>
+								</>
+							)}
+						</div>
 					</div>
 
 					{/* Mobile hamburger */}
@@ -130,7 +156,7 @@ export default function NavBar({ className }: NavBarProps) {
 				id="mobile-menu"
 				ref={panelRef}
 				className={`sm:hidden overflow-hidden transition-[max-height] duration-200 ease-out border-b border-gray-200 ${
-					open ? "max-h-96" : "max-h-0"
+					open ? "max-h-[28rem]" : "max-h-0"
 				}`}
 			>
 				<div className="px-4 pb-4 pt-2 bg-white shadow-sm">
@@ -150,6 +176,17 @@ export default function NavBar({ className }: NavBarProps) {
 								</Link>
 							);
 						})}
+
+						<div className="pt-2 border-t mt-2">
+							{isAuthed ? (
+								<button onClick={() => signOut()} className="w-full px-3 py-2 rounded-lg border text-sm hover:bg-gray-50">Logout</button>
+							) : (
+								<div className="flex gap-2">
+									<Link href="/login" className="flex-1 px-3 py-2 rounded-lg border text-sm text-center hover:bg-gray-50">Login</Link>
+									<Link href="/signup" className="flex-1 px-3 py-2 rounded-lg bg-black text-white text-sm text-center hover:bg-gray-800">Sign Up</Link>
+								</div>
+							)}
+						</div>
 					</div>
 				</div>
 			</div>
