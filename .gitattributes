@@ -1,0 +1,14 @@
+# Mark config and lock files as generated so they’re hidden/collapsed in GitHub UI
+
+# JavaScript/TypeScript configs
+eslint.config.mjs linguist-generated=true
+next.config.ts linguist-generated=true
+postcss.config.mjs linguist-generated=true
+tsconfig.json linguist-generated=true
+
+# Dependency management
+package.json linguist-generated=true
+package-lock.json linguist-generated=true
+
+# Tool-specific
+.cursor/** linguist-generated=true
