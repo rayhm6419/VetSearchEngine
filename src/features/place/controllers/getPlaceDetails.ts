@@ -1,5 +1,5 @@
-import { getPlaceById, getReviewsForPlace } from '@/lib/mock-data';
 import { Place, Review } from '@/lib/types';
+import { placeService } from '@/server/services/placeService';
 
 export type PlaceDetailsDTO = {
   place: Place | null;
@@ -8,9 +8,8 @@ export type PlaceDetailsDTO = {
 
 export async function getPlaceDetails(id: string): Promise<PlaceDetailsDTO> {
   const [place, reviews] = await Promise.all([
-    getPlaceById(id),
-    getReviewsForPlace(id),
+    placeService.getById(id),
+    placeService.getReviews(id),
   ]);
   return { place, reviews };
 }
-

@@ -42,3 +42,5 @@ next-env.d.ts
 
 # Ignore Cursor IDE files
 .cursor/
+
+/src/generated/prisma

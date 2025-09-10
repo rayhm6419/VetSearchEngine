@@ -1,5 +1,5 @@
-import { PLACES } from '@/lib/mock-data';
 import { Place } from '@/lib/types';
+import { placeService } from '@/server/services/placeService';
 
 export type SearchDTO = {
   initialPlaces: Place[];
@@ -7,8 +7,6 @@ export type SearchDTO = {
 };
 
 export async function getSearchResults(zipParam?: string | null): Promise<SearchDTO> {
-  // Simulate network/processing delay if needed
-  const initialPlaces = PLACES.filter(p => !zipParam || p.zipcode === zipParam);
+  const initialPlaces = await placeService.searchByZip({ zip: zipParam || undefined });
   return { initialPlaces, zipParam };
 }
-
