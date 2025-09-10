@@ -24,6 +24,10 @@ export default function PlacePageView({ place, reviews }: Props) {
   const [loadingReviews, setLoadingReviews] = useState(false);
   const [reviewsError, setReviewsError] = useState(false);
   const [modalOpen, setModalOpen] = useState(false);
+  const [currentPlace, setCurrentPlace] = useState(place);
+  const [currentReviews, setCurrentReviews] = useState(reviews);
+  const [submittingReview, setSubmittingReview] = useState(false);
+  const [submitError, setSubmitError] = useState<string | null>(null);
 
   const breadcrumbItems = [
     { label: 'Home', href: '/' },
@@ -57,8 +61,31 @@ export default function PlacePageView({ place, reviews }: Props) {
     setTimeout(() => setLoadingReviews(false), 400);
   };
 
-  const handleSubmitReview = (rating: number, text: string) => {
-    console.log('Review submitted:', { rating, text });
+  const handleSubmitReview = async (rating: number, text: string) => {
+    if (!currentPlace?.id) return;
+    setSubmitError(null);
+    setSubmittingReview(true);
+    try {
+      const res = await fetch(`/api/places/${currentPlace.id}/reviews`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'same-origin',
+        body: JSON.stringify({ rating, text }),
+      });
+      const json = await res.json().catch(() => null);
+      if (!res.ok || !json?.ok) {
+        throw new Error(json?.error?.message || `Failed to submit review (${res.status})`);
+      }
+      const review = json.data.review as Review;
+      const updated = json.data.place as { id: string; rating?: number; reviewCount?: number };
+      setCurrentReviews((prev) => [review, ...(prev || [])]);
+      setCurrentPlace((prev) => prev ? { ...prev, rating: updated.rating ?? prev.rating, reviewCount: updated.reviewCount ?? prev.reviewCount } : prev);
+    } catch (e: any) {
+      console.error('submit_review_error', e);
+      setSubmitError(e?.message || 'Could not submit review');
+    } finally {
+      setSubmittingReview(false);
+    }
   };
 
   return (
@@ -72,18 +99,18 @@ export default function PlacePageView({ place, reviews }: Props) {
         <PhotoStrip place={place} />
         <MapCard place={place} />
 
-        {place.rating && (
+        {currentPlace?.rating && (
           <RatingSummary
-            rating={place.rating}
-            reviewCount={place.reviewCount || 0}
-            reviews={reviews}
+            rating={currentPlace.rating}
+            reviewCount={currentPlace.reviewCount || 0}
+            reviews={currentReviews}
           />
         )}
 
         <ReviewsList
-          reviews={reviews}
+          reviews={currentReviews}
           loading={loadingReviews}
-          error={reviewsError}
+          error={reviewsError || Boolean(submitError)}
           onRetry={handleRetryReviews}
         />
 
@@ -94,8 +121,17 @@ export default function PlacePageView({ place, reviews }: Props) {
           onClose={() => setModalOpen(false)}
           onSubmit={handleSubmitReview}
         />
+        {submittingReview && (
+          <div className="fixed bottom-4 left-1/2 -translate-x-1/2 bg-black text-white text-sm px-3 py-2 rounded-md shadow">
+            Submitting review…
+          </div>
+        )}
+        {submitError && (
+          <div className="fixed bottom-4 left-1/2 -translate-x-1/2 bg-red-600 text-white text-sm px-3 py-2 rounded-md shadow">
+            {submitError}
+          </div>
+        )}
       </div>
     </div>
   );
 }
-

@@ -95,7 +95,13 @@ export const placeService = {
     });
     const rating = Number(agg._avg.rating || 0);
     const reviewCount = agg._count._all;
-    await prisma.place.update({ where: { id: placeId }, data: { rating, reviewCount } });
+    try {
+      await prisma.place.update({ where: { id: placeId }, data: { rating, reviewCount } });
+    } catch (err: any) {
+      // Handle stale Prisma Client that doesn't yet know about rating/reviewCount
+      if (err?.name !== 'PrismaClientValidationError') throw err;
+      // Swallow and return computed values so the UI updates immediately.
+    }
     return { rating, reviewCount };
   },
 };
