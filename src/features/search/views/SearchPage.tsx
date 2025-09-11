@@ -10,12 +10,13 @@ type Props = {
   zipParam?: string | null;
   center?: { lat: number; lng: number };
   radiusKm?: number;
+  initialType?: 'vet' | 'shelter' | undefined;
 };
 
-export default function SearchPage({ initialPlaces, zipParam, center, radiusKm }: Props) {
+export default function SearchPage({ initialPlaces, zipParam, center, radiusKm, initialType }: Props) {
   const router = useRouter();
   const [loading, setLoading] = useState(true);
-  const [typeFilter, setTypeFilter] = useState<'all' | 'vet' | 'shelter'>('all');
+  const [typeFilter, setTypeFilter] = useState<'all' | 'vet' | 'shelter'>(initialType ?? 'all');
 
   useEffect(() => {
     const timer = setTimeout(() => setLoading(false), 500);
@@ -94,9 +95,42 @@ export default function SearchPage({ initialPlaces, zipParam, center, radiusKm }
         )}
 
         <div className="flex justify-center gap-3 mb-6">
-          <Chip selected={typeFilter === 'all'} onClick={() => setTypeFilter('all')}>All</Chip>
-          <Chip selected={typeFilter === 'vet'} onClick={() => setTypeFilter('vet')}>Vet</Chip>
-          <Chip selected={typeFilter === 'shelter'} onClick={() => setTypeFilter('shelter')}>Shelter</Chip>
+          <Chip
+            selected={typeFilter === 'all'}
+            onClick={() => {
+              setTypeFilter('all');
+              const params = new URLSearchParams();
+              if (zipParam) params.set('zip', zipParam);
+              if (!zipParam && center) { params.set('lat', String(center.lat)); params.set('lng', String(center.lng)); }
+              if (radiusKm) params.set('radiusKm', String(radiusKm));
+              params.set('type', 'all');
+              router.push(`/search?${params.toString()}`);
+            }}
+          >All</Chip>
+          <Chip
+            selected={typeFilter === 'vet'}
+            onClick={() => {
+              setTypeFilter('vet');
+              const params = new URLSearchParams();
+              if (zipParam) params.set('zip', zipParam);
+              if (!zipParam && center) { params.set('lat', String(center.lat)); params.set('lng', String(center.lng)); }
+              if (radiusKm) params.set('radiusKm', String(radiusKm));
+              params.set('type', 'vet');
+              router.push(`/search?${params.toString()}`);
+            }}
+          >Vet</Chip>
+          <Chip
+            selected={typeFilter === 'shelter'}
+            onClick={() => {
+              setTypeFilter('shelter');
+              const params = new URLSearchParams();
+              if (zipParam) params.set('zip', zipParam);
+              if (!zipParam && center) { params.set('lat', String(center.lat)); params.set('lng', String(center.lng)); }
+              if (radiusKm) params.set('radiusKm', String(radiusKm));
+              params.set('type', 'shelter');
+              router.push(`/search?${params.toString()}`);
+            }}
+          >Shelter</Chip>
         </div>
 
         <p className="text-gray-600 mb-6 text-center">

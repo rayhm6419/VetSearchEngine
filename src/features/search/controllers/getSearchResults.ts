@@ -8,7 +8,7 @@ export type SearchDTO = {
   radiusKm?: number;
 };
 
-export async function getSearchResults(params: { zip?: string | null; lat?: number | null; lng?: number | null; radiusKm?: number | null; type?: 'vet' | 'shelter' | null; } = {}): Promise<SearchDTO> {
+export async function getSearchResults(params: { zip?: string | null; lat?: number | null; lng?: number | null; radiusKm?: number | null; type?: 'vet' | 'shelter' | 'all' | null; } = {}): Promise<SearchDTO> {
   const h = await headers();
   const host = h.get('x-forwarded-host') || h.get('host') || 'localhost:3000';
   const proto = h.get('x-forwarded-proto') || 'http';
@@ -28,8 +28,11 @@ export async function getSearchResults(params: { zip?: string | null; lat?: numb
   if (params.radiusKm != null) qs.set('radiusKm', String(params.radiusKm));
   if (params.type) qs.set('type', params.type);
   const r = await fetch(`${base}/api/search?${qs.toString()}`, { cache: 'no-store' });
-  if (!r.ok) throw new Error(`search_failed: ${r.status}`);
-  const json = await r.json();
+  const json = await r.json().catch(() => null);
+  if (!r.ok) {
+    const msg = json?.error?.message || `http_${r.status}`;
+    throw new Error(`search_failed: ${msg}`);
+  }
   if (!json?.ok) throw new Error(json?.error?.message || 'search_failed');
   const { center, radiusKm } = json.data || {};
   return { initialPlaces: json.data.items as Place[], zipParam: params.zip ?? undefined, center, radiusKm };

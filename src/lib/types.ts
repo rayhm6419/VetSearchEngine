@@ -21,7 +21,7 @@ export interface Place {
   reviewCount?: number;
   priceLevel?: 1|2|3|4;      // optional
   photos?: string[];         // urls
-  source?: 'db' | 'petfinder' | 'yelp';
+  source?: 'db' | 'petfinder' | 'yelp' | 'google';
 }
 
 export interface Review {
