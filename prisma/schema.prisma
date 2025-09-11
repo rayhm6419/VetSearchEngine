@@ -22,6 +22,10 @@ enum PlaceType {
   shelter
 }
 
+enum ExternalSource {
+  petfinder
+}
+
 // --- NextAuth core models ---
 model User {
   id            String    @id @default(cuid())
@@ -100,6 +104,16 @@ model Place {
 
   // Indexes
   @@index([zipcode])
+  @@index([lat, lng])
+}
+
+// Lookup table for ZIP code centers
+model ZipCode {
+  zip   String @id
+  city  String
+  state String
+  lat   Float
+  lng   Float
 }
 
 model PlaceService {
@@ -115,16 +129,19 @@ model PlaceService {
 
 model Review {
   id        String   @id @default(cuid())
-  placeId   String
+  placeId   String?
   userId    String?
+  externalSource ExternalSource?
+  externalId String?
   rating    Int
   text      String
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  place Place @relation(fields: [placeId], references: [id], onDelete: Cascade)
-  user  User? @relation(fields: [userId], references: [id], onDelete: SetNull)
+  place Place? @relation(fields: [placeId], references: [id], onDelete: Cascade)
+  user  User?  @relation(fields: [userId], references: [id], onDelete: SetNull)
 
   @@index([placeId])
   @@index([userId])
+  @@index([externalSource, externalId])
 }

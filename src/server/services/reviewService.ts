@@ -1,43 +1,36 @@
 import { prisma } from '@/server/db';
-import { Review as UIReview } from '@/lib/types';
-import { placeService } from './placeService';
-
-function mapReview(db: any): UIReview {
-  const authorName = db.user?.username || db.user?.email || 'Anonymous';
-  return {
-    id: db.id,
-    author: { name: authorName },
-    rating: db.rating,
-    date: db.createdAt.toISOString(),
-    text: db.text,
-  };
-}
+import { ExternalSource } from '@/generated/prisma';
 
 export const reviewService = {
-  async createReview({ placeId, userId, rating, text }: { placeId: string; userId?: string | null; rating: number; text: string; }): Promise<UIReview> {
-    const r = Math.max(1, Math.min(5, Math.round(rating)));
-    const db = await prisma.review.create({
-      data: {
-        placeId,
-        userId: userId || null,
-        rating: r,
-        text,
-      },
-      include: { user: true },
-    });
-    await placeService.recomputeRating(placeId);
-    return mapReview(db);
-  },
-
-  async listByPlace(placeId: string, take = 20, skip = 0): Promise<UIReview[]> {
-    const db = await prisma.review.findMany({
-      where: { placeId },
+  async listForExternal(source: 'petfinder', externalId: string, take = 20, skip = 0) {
+    const items = await prisma.review.findMany({
+      where: { externalSource: ExternalSource.petfinder, externalId },
       include: { user: true },
       orderBy: { createdAt: 'desc' },
       take,
       skip,
     });
-    return db.map(mapReview);
+    const reviews = items.map((db) => ({
+      id: db.id,
+      author: { name: db.user?.username || db.user?.email || 'Anonymous' },
+      rating: db.rating,
+      date: db.createdAt.toISOString(),
+      text: db.text,
+    }));
+    const agg = await prisma.review.aggregate({
+      where: { externalSource: ExternalSource.petfinder, externalId },
+      _avg: { rating: true },
+      _count: { _all: true },
+    });
+    const rating = Number(agg._avg.rating || 0);
+    const reviewCount = agg._count._all;
+    return { reviews, rating, reviewCount };
+  },
+
+  async createForExternal({ userId, externalId, rating, text }: { userId: string; externalId: string; rating: number; text: string; }) {
+    const row = await prisma.review.create({
+      data: { userId, externalSource: ExternalSource.petfinder, externalId, rating, text },
+    });
+    return row;
   },
 };
-

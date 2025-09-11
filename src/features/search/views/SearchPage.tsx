@@ -8,9 +8,11 @@ import { Place } from '@/lib/types';
 type Props = {
   initialPlaces: Place[];
   zipParam?: string | null;
+  center?: { lat: number; lng: number };
+  radiusKm?: number;
 };
 
-export default function SearchPage({ initialPlaces, zipParam }: Props) {
+export default function SearchPage({ initialPlaces, zipParam, center, radiusKm }: Props) {
   const router = useRouter();
   const [loading, setLoading] = useState(true);
   const [typeFilter, setTypeFilter] = useState<'all' | 'vet' | 'shelter'>('all');
@@ -21,6 +23,20 @@ export default function SearchPage({ initialPlaces, zipParam }: Props) {
   }, []);
 
   const visible = initialPlaces.filter(p => typeFilter === 'all' || p.type === typeFilter);
+
+  const handleCardClick = (place: Place) => {
+    if (place.source === 'petfinder') {
+      const extId = place.externalId || place.id.replace(/^petfinder:/, '');
+      router.push(`/shelter/${extId}`);
+      return;
+    }
+    if (place.source && place.source !== 'db') {
+      // Other external providers (e.g., Yelp) → open website if available
+      if (place.website) window.open(place.website, '_blank');
+      return;
+    }
+    router.push(`/place/${place.id}`);
+  };
 
   const handleClearZip = () => {
     router.push('/search');
@@ -59,16 +75,20 @@ export default function SearchPage({ initialPlaces, zipParam }: Props) {
           Nearby Vets & Shelters
         </h1>
 
-        {zipParam && (
+        {(zipParam || center) && (
           <div className="flex justify-center mb-4">
             <div className="inline-flex items-center gap-2 bg-gray-100 text-gray-700 px-3 py-1 rounded-full text-sm">
-              <span>ZIP: {zipParam}</span>
-              <button
-                onClick={handleClearZip}
-                className="text-blue-600 hover:text-blue-800 underline"
-              >
-                Clear ZIP
-              </button>
+              {zipParam && <span>ZIP: {zipParam}</span>}
+              {center && !zipParam && <span>Near: {center.lat.toFixed(4)}, {center.lng.toFixed(4)}</span>}
+              {typeof radiusKm === 'number' && <span>• Radius: {radiusKm} km</span>}
+              {zipParam && (
+                <button
+                  onClick={handleClearZip}
+                  className="text-blue-600 hover:text-blue-800 underline"
+                >
+                  Clear ZIP
+                </button>
+              )}
             </div>
           </div>
         )}
@@ -88,17 +108,24 @@ export default function SearchPage({ initialPlaces, zipParam }: Props) {
             <div
               key={place.id}
               className="bg-white rounded-lg shadow-md p-6 border border-gray-200 hover:shadow-lg transition-shadow duration-200 cursor-pointer"
-              onClick={() => router.push(`/place/${place.id}`)}
+              onClick={() => handleCardClick(place)}
             >
               <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between">
                 <div className="flex-1 mb-4 sm:mb-0">
                   <h2 className="text-xl font-bold text-gray-900 mb-2">{place.name}</h2>
                   <p className="text-gray-600 mb-2">{place.address}</p>
+                  <div className="flex items-center gap-2 flex-wrap">
                   <span className={`inline-block px-3 py-1 rounded-full text-sm font-medium ${
                     place.type === 'vet' ? 'bg-blue-100 text-blue-800' : 'bg-green-100 text-green-800'
                   }`}>
                     {place.type === 'vet' ? 'Veterinary' : 'Animal Shelter'}
                   </span>
+                  {typeof place.distanceKm === 'number' && (
+                    <span className="inline-block px-3 py-1 rounded-full text-sm font-medium bg-gray-100 text-gray-700">
+                      {place.distanceKm < 1 ? `${Math.round(place.distanceKm * 1000)} m` : `${place.distanceKm.toFixed(1)} km`} away
+                    </span>
+                  )}
+                  </div>
                 </div>
 
                 <div className="flex flex-col sm:flex-row gap-3">
@@ -127,4 +154,3 @@ export default function SearchPage({ initialPlaces, zipParam }: Props) {
     </div>
   );
 }
-

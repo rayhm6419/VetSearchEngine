@@ -7,9 +7,39 @@
 
 import { prisma } from '@/server/db';
 import { PLACES, REVIEWS } from '@/lib/mock-data';
+import fs from 'fs';
+import path from 'path';
 
 async function main() {
   console.log('Seeding database...');
+
+  // Seed ZIP code centers
+  const dataDir = path.join(process.cwd(), 'prisma', 'data');
+  const primaryCsv = path.join(dataDir, 'zipcodes.csv');
+  const sampleCsv = path.join(dataDir, 'zipcodes.sample.csv');
+  const csvPath = fs.existsSync(primaryCsv) ? primaryCsv : (fs.existsSync(sampleCsv) ? sampleCsv : null);
+  if (csvPath) {
+    console.log(`Seeding ZIP codes from ${path.basename(csvPath)}...`);
+    const csv = fs.readFileSync(csvPath, 'utf8');
+    const rows = csv.split(/\r?\n/).filter(Boolean);
+    let count = 0;
+    for (const line of rows.slice(1)) { // skip header
+      const [zip, city, state, latStr, lngStr] = line.split(',');
+      if (!zip) continue;
+      const lat = Number(latStr);
+      const lng = Number(lngStr);
+      if (!Number.isFinite(lat) || !Number.isFinite(lng)) continue;
+      await prisma.zipCode.upsert({
+        where: { zip },
+        update: { city, state, lat, lng },
+        create: { zip, city, state, lat, lng },
+      });
+      count++;
+    }
+    console.log(`Seeded ${count} ZIP rows.`);
+  } else {
+    console.warn('No ZIP dataset found (prisma/data/zipcodes.csv). Skipping ZipCode seeding.');
+  }
 
   // Create or reuse a demo user for reviews
   const demoUser = await prisma.user.upsert({
@@ -91,6 +121,15 @@ async function main() {
     });
   }
 
+  // Ensure each place has coordinates; if missing, try ZipCode fallback
+  const placesMissing = await prisma.place.findMany({ where: { OR: [{ lat: null }, { lng: null }] } });
+  for (const p of placesMissing) {
+    const z = await prisma.zipCode.findUnique({ where: { zip: p.zipcode } });
+    if (z) {
+      await prisma.place.update({ where: { id: p.id }, data: { lat: z.lat, lng: z.lng } });
+    }
+  }
+
   console.log('Seed complete.');
 }
 
@@ -102,4 +141,3 @@ main()
   .finally(async () => {
     await prisma.$disconnect();
   });
-

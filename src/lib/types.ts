@@ -2,12 +2,14 @@ export interface Place {
   id: string;
   name: string;
   type: 'vet' | 'shelter';
+  externalId?: string;      // external provider id (e.g., Petfinder)
   phone?: string;
   website?: string;
   address: string;
   zipcode: string;
   lat?: number;
   lng?: number;
+  distanceKm?: number;      // included when searching by radius
   hours?: Array<{ 
     day: string; 
     open: string; 
@@ -19,6 +21,7 @@ export interface Place {
   reviewCount?: number;
   priceLevel?: 1|2|3|4;      // optional
   photos?: string[];         // urls
+  source?: 'db' | 'petfinder' | 'yelp';
 }
 
 export interface Review {

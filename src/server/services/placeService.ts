@@ -1,5 +1,7 @@
 import { prisma } from '@/server/db';
 import { Place, Review as UIReview } from '@/lib/types';
+import { Prisma } from '@/generated/prisma';
+import { boundingBox } from '@/server/geo/distance';
 
 function mapPlace(db: any): Place {
   return {
@@ -17,7 +19,10 @@ function mapPlace(db: any): Place {
     rating: typeof db.rating === 'number' ? db.rating : undefined,
     reviewCount: typeof db.reviewCount === 'number' ? db.reviewCount : undefined,
     photos: undefined,
+    distanceKm: typeof db.distance_km === 'number' ? db.distance_km :
+      typeof db.distanceKm === 'number' ? db.distanceKm : undefined,
     hours: undefined,
+    source: 'db',
   };
 }
 
@@ -73,6 +78,96 @@ export const placeService = {
         return db.map(mapPlace);
       }
       throw err;
+    }
+  },
+
+  async searchByRadius({
+    centerLat,
+    centerLng,
+    radiusKm,
+    type,
+    take = 20,
+    skip = 0,
+  }: {
+    centerLat: number;
+    centerLng: number;
+    radiusKm: number;
+    type?: 'vet' | 'shelter';
+    take?: number;
+    skip?: number;
+  }): Promise<Place[]> {
+    const engine = (process.env.GEO_ENGINE || 'haversine').toLowerCase();
+    const bbox = boundingBox({ lat: centerLat, lng: centerLng, radiusKm });
+
+    if (engine === 'postgis') {
+      // Requires a PostGIS geometry/geography column named geom; fall back if not available
+      try {
+        const whereType = type ? Prisma.sql`AND p."type" = ${type}` : Prisma.sql``;
+        const rows: any[] = await prisma.$queryRaw(Prisma.sql`
+          SELECT p.*, 
+                 ST_DistanceSphere(ST_SetSRID(ST_MakePoint(${centerLng}, ${centerLat}), 4326), ST_SetSRID(ST_MakePoint(p."lng", p."lat"), 4326)) / 1000.0 AS distance_km
+          FROM "Place" p
+          WHERE p."lat" IS NOT NULL AND p."lng" IS NOT NULL
+            AND p."lat" BETWEEN ${bbox.minLat} AND ${bbox.maxLat}
+            AND p."lng" BETWEEN ${bbox.minLng} AND ${bbox.maxLng}
+            ${whereType}
+          ORDER BY distance_km ASC, p."rating" DESC, p."reviewCount" DESC
+          LIMIT ${take} OFFSET ${skip}
+        `);
+        // Filter to radiusKm in JS as safety
+        return rows
+          .filter(r => typeof r.distance_km === 'number' && r.distance_km <= radiusKm)
+          .map(mapPlace);
+      } catch (e) {
+        // Fall through to haversine if PostGIS functions not present
+        if (process.env.NODE_ENV !== 'production') console.warn('postgis_path_failed_falling_back', e);
+      }
+    }
+
+    // Plain Postgres using Haversine formula; prefilter with bounding box
+    const whereType = type ? Prisma.sql`AND p."type" = ${type}` : Prisma.sql``;
+    try {
+      const rows: any[] = await prisma.$queryRaw(Prisma.sql`
+        SELECT * FROM (
+          SELECT 
+            p.*, 
+            (6371 * acos(
+              cos(radians(${centerLat})) * cos(radians(p."lat")) * cos(radians(p."lng") - radians(${centerLng})) +
+              sin(radians(${centerLat})) * sin(radians(p."lat"))
+            )) AS distance_km
+          FROM "Place" p
+          WHERE p."lat" IS NOT NULL AND p."lng" IS NOT NULL
+            AND p."lat" BETWEEN ${bbox.minLat} AND ${bbox.maxLat}
+            AND p."lng" BETWEEN ${bbox.minLng} AND ${bbox.maxLng}
+            ${whereType}
+        ) AS sub
+        WHERE distance_km <= ${radiusKm}
+        ORDER BY distance_km ASC, sub."rating" DESC, sub."reviewCount" DESC
+        LIMIT ${take} OFFSET ${skip}
+      `);
+      return rows.map(mapPlace);
+    } catch (e) {
+      // Fallback for older DBs without rating/reviewCount columns
+      if (process.env.NODE_ENV !== 'production') console.warn('haversine_fallback_simple_order', e);
+      const rows: any[] = await prisma.$queryRaw(Prisma.sql`
+        SELECT * FROM (
+          SELECT 
+            p.*, 
+            (6371 * acos(
+              cos(radians(${centerLat})) * cos(radians(p."lat")) * cos(radians(p."lng") - radians(${centerLng})) +
+              sin(radians(${centerLat})) * sin(radians(p."lat"))
+            )) AS distance_km
+          FROM "Place" p
+          WHERE p."lat" IS NOT NULL AND p."lng" IS NOT NULL
+            AND p."lat" BETWEEN ${bbox.minLat} AND ${bbox.maxLat}
+            AND p."lng" BETWEEN ${bbox.minLng} AND ${bbox.maxLng}
+            ${whereType}
+        ) AS sub
+        WHERE distance_km <= ${radiusKm}
+        ORDER BY distance_km ASC
+        LIMIT ${take} OFFSET ${skip}
+      `);
+      return rows.map(mapPlace);
     }
   },
 

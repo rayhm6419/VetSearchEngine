@@ -9,7 +9,8 @@ export default function HomePage() {
   const router = useRouter();
 
   const handleZipSubmit = (zip: string) => {
-    router.push(`/search?zip=${zip}`);
+    // Default to shelters for ZIP search
+    router.push(`/search?zip=${zip}&type=shelter`);
   };
 
   return (
@@ -38,4 +39,3 @@ export default function HomePage() {
     </>
   );
 }
-
