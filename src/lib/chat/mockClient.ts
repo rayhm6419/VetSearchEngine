@@ -1,4 +1,8 @@
 import { ChatContext, Message, StreamHandle } from './types';
+/**
+ * @deprecated Replaced by server streaming API at /api/chat.
+ * Keep temporarily for reference; new clients should use streamChat in src/lib/chat/client.ts
+ */
 
 const EMERGENCY = `If this is an emergency, call your nearest 24/7 veterinary hospital.
 For Seattle (98101), consider:
@@ -71,5 +75,4 @@ export async function requestChat({ messages, context }: { messages: Array<{ rol
   });
   return stream;
 }
-
 

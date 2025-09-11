@@ -5,6 +5,7 @@ import NavBar from "@/components/NavBar";
 import Providers from "@/app/providers";
 import ChatWrapper from "@features/chat/views/ChatWrapper";
 import ChatFab from "@/components/chat/ChatFab";
+import Footer from "@/components/Footer";
 
 
 const geistSans = Geist({
@@ -37,6 +38,7 @@ export default function RootLayout({
           <div className="pt-16">
             {children}
           </div>
+          <Footer />
           
           <ChatFab />
           <ChatWrapper />

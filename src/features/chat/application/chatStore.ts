@@ -3,7 +3,9 @@
 import { useEffect } from 'react';
 import { create } from 'zustand';
 import { Message, ChatContext } from '@/lib/chat/types';
-import { startStream } from '@/lib/chat/mockClient';
+// Deprecated: mockClient
+// import { startStream } from '@/lib/chat/mockClient';
+import { streamChat } from '@/lib/chat/client';
 
 type ChatState = {
   isOpen: boolean;
@@ -42,7 +44,7 @@ export const useChatStore = create<ChatState>((set, get) => ({
     const msgs: Message[] = [...state.messages, userMsg, assistantMsg];
     set({ messages: msgs, isStreaming: true });
     console.log('chat_sent');
-    const handle = startStream({ messages: msgs, context });
+    const handle = streamChat({ messages: msgs as any });
     handle.onToken((t) => {
       set((s) => {
         const arr = [...s.messages];
@@ -89,4 +91,3 @@ export function useChatPersistence(routeKey: string) {
   const hydrate = useChatStore((s) => s.hydrate);
   useEffect(() => { hydrate(`chat:${routeKey}`); }, [hydrate, routeKey]);
 }
-
