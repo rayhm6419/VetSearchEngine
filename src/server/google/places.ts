@@ -72,3 +72,10 @@ export async function searchNearbyVets(params: {
     clearTimeout(to);
   }
 }
+
+// Fetch next page using a next_page_token; Google requires a small delay after token issuance.
+export async function fetchNextPage(nextPageToken: string, take = 20, center?: { lat: number; lng: number }) {
+  // Give Google time to activate the token (client should have already delayed)
+  const { items } = await searchNearbyVets({ lat: center?.lat || 0, lng: center?.lng || 0, radiusKm: 1, take, pagetoken: nextPageToken });
+  return { items };
+}

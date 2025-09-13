@@ -30,7 +30,7 @@ export async function searchVetsByLocation(input: Partial<PlacesSearchQuery> & {
   }
   if (lat == null || lng == null) throw new Error('Missing location');
 
-  const { items } = await searchNearbyVets({ lat, lng, radiusKm, take });
+  const { items, nextPageToken } = await searchNearbyVets({ lat, lng, radiusKm, take });
   const withDetails = await enrichVetsWithDetails(items, 8);
 
   // Map PlaceDTO -> Place used by UI
@@ -68,7 +68,7 @@ export async function searchVetsByLocation(input: Partial<PlacesSearchQuery> & {
 
   return {
     items: mapped,
-    pagination: { take, page, total: mapped.length },
+    pagination: { take, page, total: mapped.length, nextPageToken },
     center: { lat, lng },
     radiusKm,
   };

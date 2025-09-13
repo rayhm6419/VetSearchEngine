@@ -68,6 +68,5 @@ export async function searchSheltersGeo(params: ShelterSearch & { type?: 'shelte
   cache.set(cacheKey, { at: now, ttlMs, value });
 
   if (dev) console.log('petfinder_geo_query', { method: resolvedZip ? 'zip' : 'coords', resultCount: value.items.length, ms: Date.now() - t0 });
-  return value;
+  return { ...value, pagination: { ...value.pagination, totalPages: orgs.pagination?.totalPages } } as any;
 }
-

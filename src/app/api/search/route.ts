@@ -7,6 +7,9 @@ import { ExternalSearchSchema } from '@/server/validation/externalSearch.schema'
 import { searchExternal } from '@/server/search/aggregate';
 import { PlacesSearchSchema } from '@/server/validation/places.schema';
 import { searchVetsByLocation } from '@/server/search/googleVets';
+import { cacheGet, cacheKey, cacheSet } from '@/server/cache/memoryCache';
+import { checkRateLimit } from '@/server/middleware/rateLimit';
+import { logInfo } from '@/server/utils/logger';
 
 export const runtime = 'nodejs';
 
@@ -15,8 +18,17 @@ export async function GET(req: NextRequest) {
     try {
       const url = new URL(req.url);
       const params = Object.fromEntries(url.searchParams);
+      const startMs = Date.now();
       // Special case: type=all -> merge vets + shelters
       if (params.type === 'all') {
+        // Rate limit + cache
+        const ip = (req.headers.get('x-forwarded-for')?.split(',')[0]?.trim()) || req.headers.get('x-real-ip') || 'local';
+        const rl = checkRateLimit(ip);
+        if (!rl.allowed) { const r = apiError('RATE_LIMITED', 'Too many requests, try later.', 429); if (rl.retryAfterSec) (r.headers as any).set('Retry-After', String(rl.retryAfterSec)); return r; }
+        const allKey = cacheKey({ type: 'all', ...params });
+        const cachedAll = cacheGet<NextResponse>(allKey);
+        if (cachedAll) return cachedAll;
+
         // Resolve center once (prefer coords; else zip via Google Geocode then OSM fallback)
         let centerLat: number | undefined = params.lat ? Number(params.lat) : undefined;
         let centerLng: number | undefined = params.lng ? Number(params.lng) : undefined;
@@ -56,6 +68,8 @@ export async function GET(req: NextRequest) {
         });
         const res = apiResponse({ items, pagination: { take, page, total: items.length }, center: { lat: centerLat, lng: centerLng }, radiusKm });
         res.headers.set('Cache-Control', 'public, s-maxage=60, stale-while-revalidate=300');
+        cacheSet(allKey, res, 60_000);
+        logInfo('search_all', { zip: params.zip, lat: centerLat, lng: centerLng, count: items.length, ms: Date.now() - startMs });
         return res as NextResponse;
       }
       // Basic in-memory throttle
@@ -66,17 +80,17 @@ export async function GET(req: NextRequest) {
         zip: params.zip, lat: params.lat, lng: params.lng, radiusKm: params.radiusKm, type: params.type,
         take: params.take, page: params.page,
       });
-      if (shouldRateLimit(`${ip}|${qKey}`)) {
-        const r = apiError('RATE_LIMITED', 'Slow down', 429);
-        (r.headers as any).set('Retry-After', '30');
-        return r;
-      }
+      const rl2 = checkRateLimit(`${ip}|${qKey}`);
+      if (!rl2.allowed) { const r = apiError('RATE_LIMITED', 'Too many requests, try later.', 429); if (rl2.retryAfterSec) (r.headers as any).set('Retry-After', String(rl2.retryAfterSec)); return r; }
 
       const parsed = ExternalSearchSchema.safeParse(params);
       if (!parsed.success) return apiError('BAD_REQUEST', formatZodError(parsed.error), 400);
 
       // If vet, route to Google Places
       if (parsed.data.type === 'vet') {
+        const key = cacheKey({ type: 'vet', ...params });
+        const cachedVet = cacheGet<NextResponse>(key);
+        if (cachedVet) return cachedVet;
         const p2 = PlacesSearchSchema.safeParse({
           zip: params.zip,
           lat: params.lat,
@@ -90,6 +104,8 @@ export async function GET(req: NextRequest) {
         const data = await searchVetsByLocation(p2.data);
         const res = apiResponse(data);
         res.headers.set('Cache-Control', 'public, s-maxage=60, stale-while-revalidate=300');
+        cacheSet(key, res, 60_000);
+        logInfo('search_vet', { zip: params.zip, lat: data.center.lat, lng: data.center.lng, count: data.items.length, ms: Date.now() - startMs });
         return res as NextResponse;
       }
 
@@ -99,10 +115,15 @@ export async function GET(req: NextRequest) {
       if (!hasYelp && !hasPF) return apiError('CONFIG', 'No external providers configured', 502);
 
       if (hasPF) {
+        const key = cacheKey({ type: 'shelter', ...params });
+        const cachedShelter = cacheGet<NextResponse>(key);
+        if (cachedShelter) return cachedShelter;
         // Use Petfinder via existing aggregate service (expects type='shelter')
         const data = await searchExternal({ ...parsed.data, type: 'shelter' });
         const res = apiResponse(data);
         res.headers.set('Cache-Control', 'public, s-maxage=60, stale-while-revalidate=300');
+        cacheSet(key, res, 60_000);
+        logInfo('search_shelter', { zip: params.zip, lat: (data as any).center?.lat, lng: (data as any).center?.lng, count: (data as any).items?.length, ms: Date.now() - startMs });
         return res as NextResponse;
       }
       // If Petfinder not configured but Yelp/Google is, fulfill with vets instead
