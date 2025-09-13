@@ -4,9 +4,11 @@ import { withRequestLog } from '@/server/http/log';
 import { prisma } from '@/server/db';
 import { placeService } from '@/server/services/placeService';
 
-export async function GET(req: NextRequest, { params }: { params: { id: string } }) {
+export async function GET(req: NextRequest, ctx: { params: Promise<{ id: string }> | { id: string } } | any) {
   return withRequestLog('GET /api/places/[id]/nearby', async () => {
-    const id = params.id;
+    const raw = ctx?.params;
+    const params = typeof raw?.then === 'function' ? await raw : raw;
+    const id = params?.id as string;
     const radiusKm = 5;
     const take = 10;
     const place = await prisma.place.findUnique({ where: { id } });
@@ -19,4 +21,3 @@ export async function GET(req: NextRequest, { params }: { params: { id: string }
     return res;
   });
 }
-

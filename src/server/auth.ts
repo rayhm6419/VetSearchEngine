@@ -1,5 +1,5 @@
 import { getServerSession } from 'next-auth';
-import { authOptions } from '@/app/api/auth/[...nextauth]/route';
+import { authOptions } from '@/server/authOptions';
 import { AppError } from '@/server/http/errors';
 import { NextRequest } from 'next/server';
 import { getToken } from 'next-auth/jwt';

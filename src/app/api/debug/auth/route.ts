@@ -2,7 +2,7 @@ import { NextRequest } from 'next/server';
 import { NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { getToken } from 'next-auth/jwt';
-import { authOptions } from '@/app/api/auth/[...nextauth]/route';
+import { authOptions } from '@/server/authOptions';
 
 export async function GET(req: NextRequest) {
   if (process.env.NODE_ENV === 'production') {
@@ -18,4 +18,3 @@ export async function GET(req: NextRequest) {
     cookieNames: req.cookies.getAll().map(c => c.name),
   }});
 }
-
