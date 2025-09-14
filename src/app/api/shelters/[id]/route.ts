@@ -6,7 +6,7 @@ import { ShelterIdParamSchema } from '@/server/validation/shelter.schema';
 import { getOrganization } from '@/server/petfinder/client';
 import { toPlaceDTO } from '@/server/petfinder/mappers';
 
-export async function GET(_req: NextRequest, ctx: { params: Promise<{ id: string }> | { id: string } }) {
+export async function GET(_req: NextRequest, ctx: any) {
   return withRequestLog('GET /api/shelters/[id]', async () => {
     try {
       const pRaw: any = (ctx as any).params;

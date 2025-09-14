@@ -6,10 +6,12 @@ import { placeService } from '@/server/services/placeService';
 import { withRequestLog } from '@/server/http/log';
 import { AppError } from '@/server/http/errors';
 
-export async function GET(_req: NextRequest, ctx: { params: { id: string } }) {
+export async function GET(_req: NextRequest, ctx: { params: Promise<{ id: string }> | { id: string } } | any) {
   return withRequestLog('GET /api/places/[id]', async () => {
     try {
-      const parsed = PlaceIdParamSchema.safeParse(ctx.params);
+      const raw = ctx?.params;
+      const params = typeof raw?.then === 'function' ? await raw : raw;
+      const parsed = PlaceIdParamSchema.safeParse(params);
       if (!parsed.success) return apiError('BAD_REQUEST', formatZodError(parsed.error), 400);
       const place = await placeService.getById(parsed.data.id);
       if (!place) return apiError('NOT_FOUND', 'Place not found', 404);

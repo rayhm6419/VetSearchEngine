@@ -17,7 +17,7 @@ const RL_WINDOW = Number(process.env.CHAT_RATE_WINDOW_SEC || 300) * 1000;
 
 function keyFor(req: NextRequest, userId?: string) {
   if (userId) return `u:${userId}`;
-  const ip = req.headers.get('x-forwarded-for')?.split(',')[0]?.trim() || req.ip || '0.0.0.0';
+  const ip = req.headers.get('x-forwarded-for')?.split(',')[0]?.trim() || req.headers.get('x-real-ip') || '0.0.0.0';
   return `ip:${ip}`;
 }
 
@@ -63,7 +63,7 @@ export async function POST(req: NextRequest) {
     if (!checkRate(req, userId)) return apiError('RATE_LIMITED', 'Slow down', 429);
 
     const start = Date.now();
-    const provider = chooseProvider();
+    const provider = await chooseProvider();
 
     // Create streaming response
     const stream = new ReadableStream<Uint8Array>({
@@ -85,11 +85,10 @@ export async function POST(req: NextRequest) {
           } catch (provErr: any) {
             // Provider failed (e.g., OpenAI 401/403/429). Fallback to mock streaming so UX still works.
             if (process.env.NODE_ENV !== 'production') {
-              // eslint-disable-next-line no-console
               console.warn('chat_provider_error', provErr?.message || provErr);
             }
-            const { MockProvider } = require('@/server/chat/providers/mock') as typeof import('@/server/chat/providers/mock');
-            const mock = new MockProvider();
+            const mod = await import('@/server/chat/providers/mock');
+            const mock = new mod.MockProvider();
             const preface = `\n[Provider unavailable: ${provErr?.message || 'error'}]\nUsing demo response:\n\n`;
             charsOut += preface.length;
             controller.enqueue(enc.encode(preface));
@@ -102,7 +101,6 @@ export async function POST(req: NextRequest) {
           const ms = Date.now() - start;
           if (process.env.NODE_ENV !== 'production') {
             const charsIn = parsed.data.messages.reduce((n, m) => n + (m.content?.length || 0), 0);
-            // eslint-disable-next-line no-console
             console.log(JSON.stringify({ evt: 'chat_done', userId, msgs: parsed.data.messages.length, charsIn, charsOut, ms }));
           }
         } catch (e: any) {
@@ -120,7 +118,6 @@ export async function POST(req: NextRequest) {
   } catch (e: any) {
     const dev = process.env.NODE_ENV !== 'production';
     if (dev) {
-      // eslint-disable-next-line no-console
       console.error('chat_route_error', e);
       return apiError('INTERNAL', e?.message || 'Something went wrong', 500);
     }

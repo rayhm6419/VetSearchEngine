@@ -6,7 +6,7 @@ import { ShelterIdParamSchema, ListShelterReviewsQuerySchema, CreateShelterRevie
 import { reviewService } from '@/server/services/reviewService';
 import { requireUserFromRequest } from '@/server/auth';
 
-export async function GET(req: NextRequest, ctx: { params: Promise<{ id: string }> | { id: string } }) {
+export async function GET(req: NextRequest, ctx: any) {
   return withRequestLog('GET /api/shelters/[id]/reviews', async () => {
     try {
       const paramsRaw: any = (ctx as any).params;
@@ -28,7 +28,7 @@ export async function GET(req: NextRequest, ctx: { params: Promise<{ id: string 
   });
 }
 
-export async function POST(req: NextRequest, ctx: { params: Promise<{ id: string }> | { id: string } }) {
+export async function POST(req: NextRequest, ctx: any) {
   return withRequestLog('POST /api/shelters/[id]/reviews', async () => {
     try {
       const user = await requireUserFromRequest(req);

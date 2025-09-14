@@ -39,9 +39,9 @@ export default function PlacePageView({ place, reviews }: Props) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="text-center max-w-md mx-auto px-4">
-          <h1 className="text-2xl font-bold text-gray-900 mb-4">We couldn't find this place.</h1>
+          <h1 className="text-2xl font-bold text-gray-900 mb-4">We couldn&apos;t find this place.</h1>
           <p className="text-gray-600 mb-6">
-            The place you're looking for doesn't exist or has been removed.
+            The place you&apos;re looking for doesn&apos;t exist or has been removed.
           </p>
           <button
             onClick={() => router.push('/search')}

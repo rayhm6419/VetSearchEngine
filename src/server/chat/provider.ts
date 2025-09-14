@@ -6,19 +6,18 @@ export interface ChatProvider {
   name?: string;
 }
 
-// Factory for swapping LLM backends later
-export function chooseProvider(): ChatProvider {
+// Factory for swapping LLM backends later (lazy dynamic import)
+export async function chooseProvider(): Promise<ChatProvider> {
   const provider = (process.env.CHAT_PROVIDER || 'mock').toLowerCase();
   switch (provider) {
     case 'openai': {
-      const { OpenAIProvider } = require('./providers/openai') as typeof import('./providers/openai');
-      return new OpenAIProvider(process.env.OPENAI_API_KEY || '', process.env.CHAT_OPENAI_MODEL || 'gpt-4o-mini');
+      const mod = await import('./providers/openai');
+      return new mod.OpenAIProvider(process.env.OPENAI_API_KEY || '', process.env.CHAT_OPENAI_MODEL || 'gpt-4o-mini');
     }
     case 'mock':
     default: {
-      // Lazy import to keep serverless bundle small
-      const { MockProvider } = require('./providers/mock') as typeof import('./providers/mock');
-      return new MockProvider();
+      const mod = await import('./providers/mock');
+      return new mod.MockProvider();
     }
   }
 }

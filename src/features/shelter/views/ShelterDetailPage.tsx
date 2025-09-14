@@ -26,7 +26,7 @@ export default function ShelterDetailPage({ shelter, reviews, rating, reviewCoun
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="text-center max-w-md mx-auto px-4">
-          <h1 className="text-2xl font-bold text-gray-900 mb-4">We couldn't load this shelter.</h1>
+          <h1 className="text-2xl font-bold text-gray-900 mb-4">We couldn&apos;t load this shelter.</h1>
           <p className="text-gray-600 mb-6">It may not exist or is temporarily unavailable.</p>
           <button onClick={() => router.push('/search?type=shelter')} className="inline-block rounded-lg bg-black text-white px-5 py-3 text-sm hover:opacity-90">Back to Search</button>
         </div>
@@ -112,4 +112,3 @@ export default function ShelterDetailPage({ shelter, reviews, rating, reviewCoun
     </div>
   );
 }
-

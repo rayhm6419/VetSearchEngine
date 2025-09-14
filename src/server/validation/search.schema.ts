@@ -24,8 +24,6 @@ const ByCoords = z.object({
   ...base,
 });
 
-export const SearchQuerySchema = z.union([ByZip, ByCoords], {
-  invalid_type_error: 'Provide either zip or lat/lng',
-});
+export const SearchQuerySchema = z.union([ByZip, ByCoords]);
 
 export type SearchQuery = z.infer<typeof SearchQuerySchema>;

@@ -42,7 +42,7 @@ export async function GET(req: NextRequest) {
             const { geocodeZip } = await import('@/server/google/geocode');
             const geo = await geocodeZip(params.zip);
             centerLat = geo.lat; centerLng = geo.lng;
-          } catch (e) {
+          } catch {
             const { geocodeZip: osmGeocode } = await import('@/server/geo/geocode');
             const geo = await osmGeocode(params.zip);
             centerLat = geo.lat; centerLng = geo.lng;
@@ -153,14 +153,4 @@ export async function GET(req: NextRequest) {
   });
 }
 
-const bucket = new Map<string, { count: number; first: number }>();
-function shouldRateLimit(key: string) {
-  const windowMs = 5 * 60 * 1000; // 5 minutes
-  const limit = 30;
-  const now = Date.now();
-  const ent = bucket.get(key);
-  if (!ent) { bucket.set(key, { count: 1, first: now }); return false; }
-  if (now - ent.first > windowMs) { bucket.set(key, { count: 1, first: now }); return false; }
-  ent.count += 1; bucket.set(key, ent);
-  return ent.count > limit;
-}
+// legacy rate-limit removed (using middleware instead)

@@ -1,5 +1,6 @@
 import { prisma } from '@/server/db';
 import { ExternalSource } from '@/generated/prisma';
+import { Review as UIReview } from '@/lib/types';
 
 export const reviewService = {
   async listForExternal(source: 'petfinder', externalId: string, take = 20, skip = 0) {
@@ -32,5 +33,21 @@ export const reviewService = {
       data: { userId, externalSource: ExternalSource.petfinder, externalId, rating, text },
     });
     return row;
+  },
+
+  async createReview({ placeId, userId, rating, text }: { placeId: string; userId: string; rating: number; text: string; }): Promise<UIReview> {
+    const row = await prisma.review.create({
+      data: { placeId, userId, rating, text },
+      include: { user: true },
+    });
+    const authorName = row.user?.username || row.user?.email || 'Anonymous';
+    const ui: UIReview = {
+      id: row.id,
+      author: { name: authorName },
+      rating: row.rating,
+      date: row.createdAt.toISOString(),
+      text: row.text,
+    };
+    return ui;
   },
 };

@@ -18,7 +18,19 @@ const eslintConfig = [
       "out/**",
       "build/**",
       "next-env.d.ts",
+      "src/generated/**",
+      "src/generated/prisma/**",
+      "src/generated/prisma/runtime/**",
+      "src/generated/prisma/wasm.js",
+      "src/generated/prisma/runtime/**",
     ],
+  },
+  {
+    files: ["src/**/*.ts", "src/**/*.tsx"],
+    rules: {
+      "@typescript-eslint/no-explicit-any": "off",
+      "@typescript-eslint/no-require-imports": "off",
+    },
   },
 ];
 

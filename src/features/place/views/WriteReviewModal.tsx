@@ -13,7 +13,7 @@ export default function WriteReviewModal({ isOpen, onClose, onSubmit }: WriteRev
   const [text, setText] = useState('');
   const [hoveredRating, setHoveredRating] = useState(0);
   const modalRef = useRef<HTMLDivElement>(null);
-  const firstFocusableRef = useRef<HTMLButtonElement>(null);
+  const firstFocusableRef = useRef<HTMLTextAreaElement>(null);
 
   useEffect(() => {
     if (isOpen && firstFocusableRef.current) {
@@ -148,4 +148,3 @@ export default function WriteReviewModal({ isOpen, onClose, onSubmit }: WriteRev
     </div>
   );
 }
-

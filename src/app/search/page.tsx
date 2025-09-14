@@ -1,7 +1,9 @@
 import { getSearchResults } from '@features/search/controllers/getSearchResults';
 import SearchPage from '@features/search/views/SearchPage';
 
-export default async function Page({ searchParams }: { searchParams: { [key: string]: string | string[] | undefined } }) {
+export default async function Page(props: any) {
+  const spRaw: any = props?.searchParams;
+  const searchParams = typeof spRaw?.then === 'function' ? await spRaw : spRaw;
   const zip = typeof searchParams?.zip === 'string' ? searchParams.zip : undefined;
   const lat = typeof searchParams?.lat === 'string' ? Number(searchParams.lat) : undefined;
   const lng = typeof searchParams?.lng === 'string' ? Number(searchParams.lng) : undefined;

@@ -1,13 +1,13 @@
-import { NextResponse, NextResponseInit } from 'next/server';
+import { NextResponse } from 'next/server';
 
 export type ApiErrorShape = { code: string; message: string };
 export type ApiResponseShape<T> = { ok: true; data: T } | { ok: false; error: ApiErrorShape };
 
-export function apiResponse<T>(data: T, init?: NextResponseInit) {
+export function apiResponse<T>(data: T, init?: ResponseInit) {
   return NextResponse.json({ ok: true, data } as ApiResponseShape<T>, init);
 }
 
-export function apiError(code: string, message: string, status = 400, init?: NextResponseInit) {
+export function apiError(code: string, message: string, status = 400, init?: ResponseInit) {
   return NextResponse.json({ ok: false, error: { code, message } }, { status, ...(init || {}) });
 }
 
@@ -16,4 +16,3 @@ export function buildPagination({ take, skip, total }: { take: number; skip: num
   if (typeof total === 'number') out.total = total;
   return out;
 }
-

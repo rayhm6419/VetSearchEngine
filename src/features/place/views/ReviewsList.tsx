@@ -79,7 +79,7 @@ export default function ReviewsList({ reviews, loading, error, onRetry }: Review
       <div className="bg-white rounded-lg shadow-lg p-6 mb-6">
         <h2 className="text-xl font-semibold text-gray-900 mb-4">Reviews</h2>
         <div className="text-center py-8">
-          <p className="text-gray-600 mb-4">We couldn't load this section.</p>
+          <p className="text-gray-600 mb-4">We couldn&apos;t load this section.</p>
           {onRetry && (
             <button
               onClick={onRetry}
@@ -175,4 +175,3 @@ export default function ReviewsList({ reviews, loading, error, onRetry }: Review
     </div>
   );
 }
-

@@ -10,7 +10,7 @@ type Props = {
   zipParam?: string | null;
   center?: { lat: number; lng: number };
   radiusKm?: number;
-  initialType?: 'vet' | 'shelter' | undefined;
+  initialType?: 'vet' | 'shelter' | 'all' | undefined;
 };
 
 export default function SearchPage({ initialPlaces, zipParam, center, radiusKm, initialType }: Props) {

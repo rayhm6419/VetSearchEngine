@@ -24,10 +24,12 @@ function checkRateLimit(userId: string) {
   return true;
 }
 
-export async function GET(req: NextRequest, ctx: { params: { id: string } }) {
+export async function GET(req: NextRequest, ctx: { params: Promise<{ id: string }> | { id: string } } | any) {
   return withRequestLog('GET /api/places/[id]/reviews', async () => {
     try {
-      const idParsed = PlaceIdParamSchema.safeParse(ctx.params);
+      const raw = ctx?.params;
+      const params = typeof raw?.then === 'function' ? await raw : raw;
+      const idParsed = PlaceIdParamSchema.safeParse(params);
       if (!idParsed.success) return apiError('BAD_REQUEST', formatZodError(idParsed.error), 400);
       const url = new URL(req.url);
       const qParsed = ListReviewsQuerySchema.safeParse(Object.fromEntries(url.searchParams));
@@ -45,10 +47,12 @@ export async function GET(req: NextRequest, ctx: { params: { id: string } }) {
   });
 }
 
-export async function POST(req: NextRequest, ctx: { params: { id: string } }) {
+export async function POST(req: NextRequest, ctx: { params: Promise<{ id: string }> | { id: string } } | any) {
   return withRequestLog('POST /api/places/[id]/reviews', async () => {
     try {
-      const idParsed = PlaceIdParamSchema.safeParse(ctx.params);
+      const raw = ctx?.params;
+      const params = typeof raw?.then === 'function' ? await raw : raw;
+      const idParsed = PlaceIdParamSchema.safeParse(params);
       if (!idParsed.success) return apiError('BAD_REQUEST', formatZodError(idParsed.error), 400);
 
       const ctype = req.headers.get('content-type') || '';
