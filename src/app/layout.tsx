@@ -5,6 +5,8 @@ import NavBar from "@/components/NavBar";
 import Providers from "@/app/providers";
 import ChatWrapper from "@features/chat/views/ChatWrapper";
 import ChatFab from "@/components/chat/ChatFab";
+
+export const dynamic = 'force-dynamic';
 import Footer from "@/components/Footer";
 
 
