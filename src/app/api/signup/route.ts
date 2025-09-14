@@ -23,23 +23,27 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Invalid username. Use 3–20 chars: letters, numbers, underscore" }, { status: 400 });
   }
 
-  // Check uniqueness in DB
-  const [emailExists, usernameExists] = await Promise.all([
-    prisma.user.findUnique({ where: { email } }),
-    prisma.user.findUnique({ where: { username } }),
-  ]);
+  try {
+    // Check uniqueness in DB
+    const [emailExists, usernameExists] = await Promise.all([
+      prisma.user.findUnique({ where: { email } }),
+      prisma.user.findUnique({ where: { username } }),
+    ]);
 
-  if (usernameExists) {
-    return NextResponse.json({ error: "Username already taken" }, { status: 409 });
-  }
-  if (emailExists) {
-    return NextResponse.json({ error: "Email already registered" }, { status: 409 });
-  }
+    if (usernameExists) {
+      return NextResponse.json({ error: "Username already taken" }, { status: 409 });
+    }
+    if (emailExists) {
+      return NextResponse.json({ error: "Email already registered" }, { status: 409 });
+    }
 
-  const user = await prisma.user.create({
-    data: { email, username },
-    select: { id: true, email: true, username: true, createdAt: true },
-  });
-  return NextResponse.json({ ok: true, user }, { status: 201 });
+    const user = await prisma.user.create({
+      data: { email, username },
+      select: { id: true, email: true, username: true, createdAt: true },
+    });
+    return NextResponse.json({ ok: true, user }, { status: 201 });
+  } catch (err: any) {
+    console.error("/api/signup error:", err);
+    return NextResponse.json({ error: "Signup failed. Please try again later." }, { status: 500 });
+  }
 }
-
