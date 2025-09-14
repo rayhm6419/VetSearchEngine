@@ -58,7 +58,6 @@ export async function searchOrganizations(params: OrgSearchParams): Promise<{
       throw err;
     }
     if (!res.ok) {
-      const body = await safeJson(res);
       if (process.env.NODE_ENV !== 'production') console.warn('petfinder_upstream_error', { status: res.status, url: url.toString() });
       throw new AppError('PETFINDER_UPSTREAM', `Upstream error ${res.status}`, 502);
     }
@@ -72,10 +71,6 @@ export async function searchOrganizations(params: OrgSearchParams): Promise<{
   } finally {
     clearTimeout(to);
   }
-}
-
-async function safeJson(res: Response) {
-  try { return await res.json(); } catch { return null; }
 }
 
 export async function getOrganization(id: string): Promise<any> {

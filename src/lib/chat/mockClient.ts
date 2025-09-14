@@ -26,7 +26,7 @@ function pickResponse(prompt: string): string {
   return GENERIC;
 }
 
-export function startStream({ messages, context }: { messages: Message[]; context?: ChatContext }): StreamHandle {
+export function startStream({ messages, context: _context }: { messages: Message[]; context?: ChatContext }): StreamHandle {
   const last = messages[messages.length - 1];
   const text = pickResponse(last?.content || '');
   const tokens = text.split(/(\s+)/); // include spaces for smoother stream
@@ -39,11 +39,11 @@ export function startStream({ messages, context }: { messages: Message[]; contex
   const interval = setInterval(() => {
     if (i >= tokens.length) {
       clearInterval(interval);
-      doneCb && doneCb();
+      if (doneCb) doneCb();
       console.log('chat_stream_done');
       return;
     }
-    tokenCb && tokenCb(tokens[i++]);
+    if (tokenCb) tokenCb(tokens[i++]);
   }, 35);
 
   return {
@@ -52,21 +52,19 @@ export function startStream({ messages, context }: { messages: Message[]; contex
     onError(cb) { errorCb = cb; },
     cancel() {
       clearInterval(interval);
-      errorCb && errorCb('cancelled');
+      if (errorCb) errorCb('cancelled');
     },
   };
 }
 
 // Future adapter stub
-export async function requestChat({ messages, context }: { messages: Array<{ role: string; content: string }>; context?: ChatContext }) {
-  console.log('requestChat (stub)', { messages, context });
+export async function requestChat({ messages, context: _context }: { messages: Array<{ role: string; content: string }>; context?: ChatContext }) {
+  console.log('requestChat (stub)', { messages });
   const encoder = new TextEncoder();
   const stream = new ReadableStream<Uint8Array>({
     start(controller) {
-      const handle = startStream({ messages: messages as any, context });
-      let output = '';
+      const handle = startStream({ messages: messages as any, context: _context });
       handle.onToken((t) => {
-        output += t;
         controller.enqueue(encoder.encode(t));
       });
       handle.onDone(() => controller.close());
@@ -75,4 +73,3 @@ export async function requestChat({ messages, context }: { messages: Array<{ rol
   });
   return stream;
 }
-

@@ -224,7 +224,7 @@ export const getPlaceById = async (id: string): Promise<Place | null> => {
   return place || null;
 };
 
-export const getReviewsForPlace = async (placeId: string): Promise<Review[]> => {
+export const getReviewsForPlace = async (_placeId: string): Promise<Review[]> => {
   // Simulate network delay
   await new Promise(resolve => setTimeout(resolve, 400 + Math.random() * 200));
   

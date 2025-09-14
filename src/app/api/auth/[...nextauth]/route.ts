@@ -1,10 +1,9 @@
-import NextAuth, { NextAuthOptions, NextAuthConfig } from "next-auth";
+import NextAuth, { NextAuthOptions } from "next-auth";
 
 export const runtime = 'nodejs';
 
 async function getAuthConfig(): Promise<NextAuthOptions> {
   const AUTH_SECRET = process.env.AUTH_SECRET ?? process.env.NEXTAUTH_SECRET;
-  const AUTH_URL = process.env.AUTH_URL ?? process.env.NEXTAUTH_URL;
   const HAS_DB = Boolean(process.env.DATABASE_URL);
 
   const cfg: NextAuthOptions = {
@@ -79,7 +78,7 @@ export async function GET(req: Request, ctx: any) {
     const body = JSON.stringify({ ok: false, error: { code: 'AUTH_MISCONFIG', message: 'Missing AUTH_SECRET/NEXTAUTH_SECRET' } });
     return new Response(body, { status: 500, headers: { 'content-type': 'application/json' } });
   }
-  const handler = NextAuth(config as NextAuthConfig);
+  const handler = NextAuth(config as NextAuthOptions);
   return handler(req, ctx);
 }
 

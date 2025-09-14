@@ -37,7 +37,7 @@ export const useChatStore = create<ChatState>((set, get) => ({
     set({ isOpen: false });
   },
   clear: () => set({ messages: [] }),
-  send: (text, context) => {
+  send: (text) => {
     const state = get();
     const userMsg: Message = { id: genId(), role: 'user', content: text, createdAt: Date.now() };
     const assistantMsg: Message = { id: genId(), role: 'assistant', content: '', createdAt: Date.now() };
@@ -64,7 +64,7 @@ export const useChatStore = create<ChatState>((set, get) => ({
       set({ isStreaming: false });
     });
   },
-  applySuggestion: (text, context) => get().send(text, context),
+  applySuggestion: (text) => get().send(text),
   hydrate: (key: string) => {
     try {
       if (typeof window === 'undefined') return;
