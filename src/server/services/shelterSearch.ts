@@ -4,6 +4,8 @@ import { searchOrganizations } from '@/server/petfinder/client';
 import { toPlaceDTO, dedupePlaces } from '@/server/petfinder/mappers';
 import { placeService } from './placeService';
 import { kmToMi, ShelterSearch } from '@/server/validation/petfinder.schema';
+import { PlaceSortOption } from '@/lib/types';
+import { sortPlaces } from '@/lib/placeSort';
 
 type CacheEntry = { at: number; ttlMs: number; value: any };
 const cache = new Map<string, CacheEntry>();
@@ -12,7 +14,7 @@ function key(params: any) {
   return JSON.stringify(params);
 }
 
-export async function searchSheltersGeo(params: ShelterSearch & { type?: 'shelter' }) {
+export async function searchSheltersGeo(params: ShelterSearch & { type?: 'shelter'; sort?: PlaceSortOption }) {
   // Resolve center
   let centerLat: number | undefined = params.lat;
   let centerLng: number | undefined = params.lng;
@@ -49,15 +51,7 @@ export async function searchSheltersGeo(params: ShelterSearch & { type?: 'shelte
     // ignore DB issues here to still return Petfinder results
   }
   const merged = dedupePlaces([ ...mapped, ...dbItems.map(p => ({ ...p, source: 'db' as const })) ]);
-  merged.sort((a, b) => {
-    const da = a.distanceKm ?? Number.POSITIVE_INFINITY;
-    const db = b.distanceKm ?? Number.POSITIVE_INFINITY;
-    if (da !== db) return da - db;
-    const ra = a.rating ?? -1, rb = b.rating ?? -1;
-    if (rb !== ra) return rb - ra;
-    const ca = a.reviewCount ?? -1, cb = b.reviewCount ?? -1;
-    return cb - ca;
-  });
+  sortPlaces(merged, params.sort ?? 'distance');
 
   const value = {
     items: merged,

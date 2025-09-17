@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from 'react';
+import { formatDistanceMiles } from '@/lib/distance';
 import { Place, Review } from '@/lib/types';
 import RatingSummary from '@features/place/views/RatingSummary';
 import ReviewsList from '@features/place/views/ReviewsList';
@@ -74,7 +75,7 @@ export default function ShelterDetailPage({ shelter, reviews, rating, reviewCoun
                 <span className="inline-block px-3 py-1 rounded-full text-sm font-medium bg-green-100 text-green-800">Animal Shelter</span>
                 {typeof shelter.distanceKm === 'number' && (
                   <span className="inline-block px-3 py-1 rounded-full text-sm font-medium bg-gray-100 text-gray-700">
-                    {shelter.distanceKm < 1 ? `${Math.round(shelter.distanceKm * 1000)} m` : `${shelter.distanceKm.toFixed(1)} km`} away
+                    {formatDistanceMiles(shelter.distanceKm)}
                   </span>
                 )}
               </div>

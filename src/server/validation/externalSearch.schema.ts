@@ -8,6 +8,7 @@ const base = {
   radiusKm: z.coerce.number().min(1).max(MAX_KM).default(DEFAULT_KM),
   take: z.coerce.number().int().min(1).max(50).default(20),
   page: z.coerce.number().int().min(1).max(1000).default(1),
+  sort: z.enum(['distance', 'rating']).default('distance'),
 };
 
 const ByZip = z.object({

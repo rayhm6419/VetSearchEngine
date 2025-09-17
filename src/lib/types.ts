@@ -26,11 +26,12 @@ export interface Place {
 
 export interface Review {
   id: string;
-  author: { 
-    name: string; 
-    avatarUrl?: string 
+  author: {
+    name: string;
+    avatarUrl?: string
   };
   rating: number;            // 1–5
   date: string;              // ISO
   text: string;
 }
+export type PlaceSortOption = 'distance' | 'rating';

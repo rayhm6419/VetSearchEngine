@@ -4,7 +4,8 @@ import { AppError } from '@/server/http/errors';
 import { searchNearbyVets } from '@/server/google/places';
 import { enrichVetsWithDetails } from '@/server/google/details';
 import { PlacesSearchQuery } from '@/server/validation/places.schema';
-import { Place } from '@/lib/types';
+import { Place, PlaceSortOption } from '@/lib/types';
+import { sortPlaces } from '@/lib/placeSort';
 
 export async function searchVetsByLocation(input: Partial<PlacesSearchQuery> & { zip?: string }) {
   let lat = input.lat as number | undefined;
@@ -13,6 +14,7 @@ export async function searchVetsByLocation(input: Partial<PlacesSearchQuery> & {
   const radiusKm = Number(input.radiusKm || process.env.PLACES_DEFAULT_RADIUS_KM || 10);
   const take = Number(input.take || 20);
   const page = Number(input.page || 1);
+  const sortOption: PlaceSortOption = input.sort === 'rating' ? 'rating' : 'distance';
 
   if ((lat == null || lng == null) && zip) {
     try {
@@ -56,15 +58,7 @@ export async function searchVetsByLocation(input: Partial<PlacesSearchQuery> & {
   }));
 
   // Sort: distance, rating desc, reviewCount desc
-  mapped.sort((a, b) => {
-    const da = a.distanceKm ?? Number.POSITIVE_INFINITY;
-    const db = b.distanceKm ?? Number.POSITIVE_INFINITY;
-    if (da !== db) return da - db;
-    const ra = a.rating ?? -1, rb = b.rating ?? -1;
-    if (rb !== ra) return rb - ra;
-    const ca = a.reviewCount ?? -1, cb = b.reviewCount ?? -1;
-    return cb - ca;
-  });
+  sortPlaces(mapped, sortOption);
 
   return {
     items: mapped,
