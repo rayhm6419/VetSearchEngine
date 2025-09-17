@@ -27,6 +27,7 @@ export async function getSearchResults(params: { zip?: string | null; lat?: numb
   }
   if (params.radiusKm != null) qs.set('radiusKm', String(params.radiusKm));
   if (params.type) qs.set('type', params.type);
+  if (params.sort) qs.set('sort', params.sort);
   const r = await fetch(`${base}/api/search?${qs.toString()}`, { cache: 'no-store' });
   const json = await r.json().catch(() => null);
   if (!r.ok) {
