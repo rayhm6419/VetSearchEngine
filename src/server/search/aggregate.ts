@@ -6,6 +6,7 @@ import { toPlaceDTO as mapOrg } from '@/server/petfinder/mappers';
 import { searchVets } from '@/server/yelp/client';
 import { mapBusinessToPlace } from '@/server/yelp/mappers';
 import { Place } from '@/lib/types';
+import { sortPlaces } from '@/lib/placeSort';
 import { haversineKm } from '@/server/geo/distance';
 
 function clamp(n: number, min: number, max: number) { return Math.max(min, Math.min(max, n)); }
@@ -53,15 +54,7 @@ export async function searchExternal(params: SearchExternalQuery): Promise<{
     }
   }
 
-  items.sort((a, b) => {
-    const da = a.distanceKm ?? Number.POSITIVE_INFINITY;
-    const db = b.distanceKm ?? Number.POSITIVE_INFINITY;
-    if (da !== db) return da - db;
-    const ra = a.rating ?? -1, rb = b.rating ?? -1;
-    if (rb !== ra) return rb - ra;
-    const ca = a.reviewCount ?? -1, cb = b.reviewCount ?? -1;
-    return cb - ca;
-  });
+  sortPlaces(items, params.sort ?? 'distance');
 
   return { items, pagination: { take, page, total }, center, radiusKm };
 }

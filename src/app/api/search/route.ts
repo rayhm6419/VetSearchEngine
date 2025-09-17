@@ -10,6 +10,8 @@ import { searchVetsByLocation } from '@/server/search/googleVets';
 import { cacheGet, cacheKey, cacheSet } from '@/server/cache/memoryCache';
 import { checkRateLimit } from '@/server/middleware/rateLimit';
 import { logInfo } from '@/server/utils/logger';
+import { sortPlaces } from '@/lib/placeSort';
+import { PlaceSortOption } from '@/lib/types';
 
 export const runtime = 'nodejs';
 
@@ -21,6 +23,7 @@ export async function GET(req: NextRequest) {
       const startMs = Date.now();
       // Special case: type=all -> merge vets + shelters
       if (params.type === 'all') {
+        const sortOption: PlaceSortOption = params.sort === 'rating' ? 'rating' : 'distance';
         // Rate limit + cache
         const ip = (req.headers.get('x-forwarded-for')?.split(',')[0]?.trim()) || req.headers.get('x-real-ip') || 'local';
         const rl = checkRateLimit(ip);
@@ -52,20 +55,11 @@ export async function GET(req: NextRequest) {
         const { searchVetsByLocation } = await import('@/server/search/googleVets');
         const { searchSheltersGeo } = await import('@/server/services/shelterSearch');
         const [vets, shelters] = await Promise.all([
-          searchVetsByLocation({ lat: centerLat, lng: centerLng, radiusKm, take, page, type: 'vet' } as any),
-          searchSheltersGeo({ lat: centerLat!, lng: centerLng!, radiusKm, take, page, type: 'shelter' }),
+          searchVetsByLocation({ lat: centerLat, lng: centerLng, radiusKm, take, page, type: 'vet', sort: sortOption } as any),
+          searchSheltersGeo({ lat: centerLat!, lng: centerLng!, radiusKm, take, page, type: 'shelter', sort: sortOption }),
         ]);
         const items = [...vets.items, ...shelters.items];
-        // Sort combined
-        items.sort((a: any, b: any) => {
-          const da = a.distanceKm ?? Number.POSITIVE_INFINITY;
-          const db = b.distanceKm ?? Number.POSITIVE_INFINITY;
-          if (da !== db) return da - db;
-          const ra = a.rating ?? -1, rb = b.rating ?? -1;
-          if (rb !== ra) return rb - ra;
-          const ca = a.reviewCount ?? -1, cb = b.reviewCount ?? -1;
-          return cb - ca;
-        });
+        sortPlaces(items as any, sortOption);
         const res = apiResponse({ items, pagination: { take, page, total: items.length }, center: { lat: centerLat, lng: centerLng }, radiusKm });
         res.headers.set('Cache-Control', 'public, s-maxage=60, stale-while-revalidate=300');
         cacheSet(allKey, res, 60_000);
@@ -99,6 +93,7 @@ export async function GET(req: NextRequest) {
           take: params.take,
           page: params.page,
           type: 'vet',
+          sort: parsed.data.sort,
         });
         if (!p2.success) return apiError('BAD_REQUEST', formatZodError(p2.error), 400);
         const data = await searchVetsByLocation(p2.data);
@@ -135,6 +130,7 @@ export async function GET(req: NextRequest) {
         take: (params as any).take,
         page: (params as any).page,
         type: 'vet',
+        sort: parsed.data.sort,
       });
       if (!p2.success) return apiError('BAD_REQUEST', formatZodError(p2.error), 400);
       const data = await searchVetsByLocation(p2.data);

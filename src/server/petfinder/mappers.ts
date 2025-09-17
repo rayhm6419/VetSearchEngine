@@ -30,9 +30,12 @@ export function toPlaceDTO(org: any, center?: { lat: number; lng: number }): Pla
   const lng = org?.coordinates?.longitude ?? null;
   const website = normalizeUrl(org?.website || org?.url || undefined);
   const phone = normalizePhone(org?.phone || undefined);
-  const distanceKm = center && lat != null && lng != null
+  let distanceKm = center && lat != null && lng != null
     ? Number(haversineKm(center.lat, center.lng, Number(lat), Number(lng)).toFixed(3))
     : undefined;
+  if (distanceKm === undefined && typeof org?.distance === 'number' && Number.isFinite(org.distance)) {
+    distanceKm = Number((org.distance * 1.60934).toFixed(3));
+  }
   return {
     id: `petfinder:${org.id}`,
     externalId: String(org.id),

@@ -1,4 +1,4 @@
-import { Place } from '@/lib/types';
+import { Place, PlaceSortOption } from '@/lib/types';
 import { headers } from 'next/headers';
 
 export type SearchDTO = {
@@ -6,9 +6,9 @@ export type SearchDTO = {
   zipParam?: string | null;
   center?: { lat: number; lng: number };
   radiusKm?: number;
+  sort?: PlaceSortOption;
 };
-
-export async function getSearchResults(params: { zip?: string | null; lat?: number | null; lng?: number | null; radiusKm?: number | null; type?: 'vet' | 'shelter' | 'all' | null; } = {}): Promise<SearchDTO> {
+export async function getSearchResults(params: { zip?: string | null; lat?: number | null; lng?: number | null; radiusKm?: number | null; type?: 'vet' | 'shelter' | 'all' | null; sort?: PlaceSortOption | null; } = {}): Promise<SearchDTO> {
   const h = await headers();
   const host = h.get('x-forwarded-host') || h.get('host') || 'localhost:3000';
   const proto = h.get('x-forwarded-proto') || 'http';
@@ -35,5 +35,11 @@ export async function getSearchResults(params: { zip?: string | null; lat?: numb
   }
   if (!json?.ok) throw new Error(json?.error?.message || 'search_failed');
   const { center, radiusKm } = json.data || {};
-  return { initialPlaces: json.data.items as Place[], zipParam: params.zip ?? undefined, center, radiusKm };
+  return {
+    initialPlaces: json.data.items as Place[],
+    zipParam: params.zip ?? undefined,
+    center,
+    radiusKm,
+    sort: params.sort ?? undefined,
+  };
 }
