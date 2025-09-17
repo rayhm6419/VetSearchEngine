@@ -35,14 +35,19 @@ model User {
   image         String?
 
   // App-specific fields
-  username      String    @unique
-  createdAt     DateTime  @default(now())
-  updatedAt     DateTime  @updatedAt
+  username  String   @unique
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   // Relations
-  accounts      Account[]
-  sessions      Session[]
-  reviews       Review[]
+  accounts                     Account[]
+  sessions                     Session[]
+  reviews                      Review[]
+  placeFirstVisitVotes         PlaceFirstVisitVote[]
+  placeAttributeVotes          PlaceAttributeVote[]
+  doctorRecommendations        DoctorRecommendation[]
+  shelterAttributeVotes        ShelterAttributeVote[]
+  shelterDoctorRecommendations ShelterDoctorRecommendation[]
 }
 
 model Account {
@@ -83,24 +88,28 @@ model VerificationToken {
 
 // --- Domain models ---
 model Place {
-  id         String     @id @default(cuid())
-  name       String
-  type       PlaceType
-  phone      String?
-  website    String?
-  address    String
-  zipcode    String
-  lat        Float?
-  lng        Float?
-  priceLevel Int?
-  rating     Float      @default(0)
+  id          String    @id @default(cuid())
+  name        String
+  type        PlaceType
+  phone       String?
+  website     String?
+  address     String
+  zipcode     String
+  lat         Float?
+  lng         Float?
+  priceLevel  Int?
+  rating      Float     @default(0)
   reviewCount Int       @default(0)
-  createdAt  DateTime   @default(now())
-  updatedAt  DateTime   @updatedAt
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
 
   // Relations
-  services   PlaceService[]
-  reviews    Review[]
+  services              PlaceService[]
+  reviews               Review[]
+  firstVisitVotes       PlaceFirstVisitVote[]
+  attributeVotes        PlaceAttributeVote[]
+  doctors               Doctor[]
+  doctorRecommendations DoctorRecommendation[] @relation("PlaceDoctorRecommendations")
 
   // Indexes
   @@index([zipcode])
@@ -123,20 +132,20 @@ model PlaceService {
 
   place Place @relation(fields: [placeId], references: [id], onDelete: Cascade)
 
-  @@index([placeId])
   @@unique([placeId, name])
+  @@index([placeId])
 }
 
 model Review {
-  id        String   @id @default(cuid())
-  placeId   String?
-  userId    String?
+  id             String          @id @default(cuid())
+  placeId        String?
+  userId         String?
   externalSource ExternalSource?
-  externalId String?
-  rating    Int
-  text      String
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  externalId     String?
+  rating         Int
+  text           String
+  createdAt      DateTime        @default(now())
+  updatedAt      DateTime        @updatedAt
 
   place Place? @relation(fields: [placeId], references: [id], onDelete: Cascade)
   user  User?  @relation(fields: [userId], references: [id], onDelete: SetNull)
@@ -152,7 +161,7 @@ model PlaceFirstVisitVote {
   id        String   @id @default(cuid())
   placeId   String
   userId    String
-  value     Boolean  // true = Yes, false = No
+  value     Boolean // true = Yes, false = No
   createdAt DateTime @default(now())
 
   place Place @relation(fields: [placeId], references: [id], onDelete: Cascade)
@@ -191,7 +200,7 @@ model Doctor {
   name      String
   createdAt DateTime @default(now())
 
-  place Place @relation(fields: [placeId], references: [id], onDelete: Cascade)
+  place Place                  @relation(fields: [placeId], references: [id], onDelete: Cascade)
   recs  DoctorRecommendation[]
 
   @@unique([placeId, name])
@@ -210,7 +219,7 @@ model DoctorRecommendation {
 
   doctor Doctor? @relation(fields: [doctorId], references: [id], onDelete: Cascade)
   // legacy relation
-  place  Place?  @relation(fields: [placeId], references: [id], onDelete: Cascade)
+  place  Place?  @relation("PlaceDoctorRecommendations", fields: [placeId], references: [id], onDelete: Cascade)
   user   User    @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([doctorId, userId])
