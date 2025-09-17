@@ -167,9 +167,7 @@ export default function SearchPage({
     pushWithFilters({ nextSort });
   };
 
-  const handleClearZip = () => {
-    router.push('/search');
-  };
+  // Removed legacy Clear ZIP action; search form provides controls now.
 
   if (loading) {
     return (
@@ -246,21 +244,7 @@ export default function SearchPage({
           </div>
         </form>
 
-        {/* 条件摘要 */}
-        {(zipParam || center) && (
-          <div className="flex justify-center mb-4">
-            <div className="inline-flex items-center gap-2 bg-gray-100 text-gray-700 px-3 py-1 rounded-full text-sm">
-              {zipParam && <span>ZIP: {zipParam}</span>}
-              {center && !zipParam && <span>Near: {center.lat.toFixed(4)}, {center.lng.toFixed(4)}</span>}
-              {typeof radiusKm === 'number' && <span>• Radius: {radiusKm} km</span>}
-              {zipParam && (
-                <button onClick={handleClearZip} className="text-blue-600 hover:text-blue-800 underline">
-                  Clear ZIP
-                </button>
-              )}
-            </div>
-          </div>
-        )}
+        {/* Removed legacy ZIP/Radius summary pill and Clear ZIP button */}
 
         {/* 顶部过滤与排序 */}
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">

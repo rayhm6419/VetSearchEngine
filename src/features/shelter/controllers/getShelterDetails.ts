@@ -1,4 +1,4 @@
-import { Place, Review } from '@/lib/types';
+import { InfoCardData, Place, Review } from '@/lib/types';
 import { headers } from 'next/headers';
 
 export type ShelterDetailsDTO = {
@@ -6,6 +6,7 @@ export type ShelterDetailsDTO = {
   reviews: Review[];
   rating?: number;
   reviewCount?: number;
+  infoCard?: InfoCardData;
 };
 
 export async function getShelterDetails(id: string): Promise<ShelterDetailsDTO> {
@@ -20,9 +21,17 @@ export async function getShelterDetails(id: string): Promise<ShelterDetailsDTO> 
   ]);
 
   let shelter: Place | null = null;
+  let infoCard: InfoCardData | undefined = undefined;
   if (dRes.ok) {
     const dj = await dRes.json().catch(() => null);
-    if (dj?.ok) shelter = dj.data as Place;
+    if (dj?.ok) {
+      if (dj.data?.shelter) {
+        shelter = dj.data.shelter as Place;
+        infoCard = dj.data.infoCard as InfoCardData | undefined;
+      } else {
+        shelter = dj.data as Place;
+      }
+    }
   }
   let reviews: Review[] = [];
   let rating: number | undefined;
@@ -35,6 +44,5 @@ export async function getShelterDetails(id: string): Promise<ShelterDetailsDTO> 
       reviewCount = rj.data.summary?.reviewCount;
     }
   }
-  return { shelter, reviews, rating, reviewCount };
+  return { shelter, reviews, rating, reviewCount, infoCard };
 }
-

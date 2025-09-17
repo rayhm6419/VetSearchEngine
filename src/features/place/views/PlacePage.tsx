@@ -2,7 +2,7 @@
 
 import { useRouter } from 'next/navigation';
 import Breadcrumb from '@/components/Breadcrumb';
-import { Place, Review } from '@/lib/types';
+import { InfoCardData, Place, Review } from '@/lib/types';
 import PlaceHeader from '@features/place/views/PlaceHeader';
 import PlaceMeta from '@features/place/views/PlaceMeta';
 import HoursCard from '@features/place/views/HoursCard';
@@ -17,9 +17,12 @@ import { useState } from 'react';
 type Props = {
   place: Place | null;
   reviews: Review[];
+  infoCard?: InfoCardData;
 };
 
-export default function PlacePageView({ place, reviews }: Props) {
+import CommunityInfo from '@features/place/views/CommunityInfo';
+
+export default function PlacePageView({ place, reviews, infoCard }: Props) {
   const router = useRouter();
   const [loadingReviews, setLoadingReviews] = useState(false);
   const [reviewsError, setReviewsError] = useState(false);
@@ -61,7 +64,7 @@ export default function PlacePageView({ place, reviews }: Props) {
     setTimeout(() => setLoadingReviews(false), 400);
   };
 
-  const handleSubmitReview = async (rating: number, text: string) => {
+  const handleSubmitReview = async (rating: number, text: string, firstVisitFree?: 'yes' | 'no' | null) => {
     if (!currentPlace?.id) return;
     setSubmitError(null);
     setSubmittingReview(true);
@@ -80,6 +83,13 @@ export default function PlacePageView({ place, reviews }: Props) {
       const updated = json.data.place as { id: string; rating?: number; reviewCount?: number };
       setCurrentReviews((prev) => [review, ...(prev || [])]);
       setCurrentPlace((prev) => prev ? { ...prev, rating: updated.rating ?? prev.rating, reviewCount: updated.reviewCount ?? prev.reviewCount } : prev);
+
+      // Optionally submit first-visit-free attribute
+      if (firstVisitFree === 'yes' || firstVisitFree === 'no') {
+        fetch(`/api/places/${currentPlace.id}/attributes/first-visit-free`, {
+          method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ value: firstVisitFree === 'yes' }),
+        }).catch(() => {});
+      }
     } catch (e: any) {
       console.error('submit_review_error', e);
       setSubmitError(e?.message || 'Could not submit review');
@@ -99,13 +109,13 @@ export default function PlacePageView({ place, reviews }: Props) {
         <PhotoStrip place={place} />
         <MapCard place={place} />
 
-        {currentPlace?.rating && (
-          <RatingSummary
-            rating={currentPlace.rating}
-            reviewCount={currentPlace.reviewCount || 0}
-            reviews={currentReviews}
-          />
-        )}
+        {/* Local, client-side community info (no server calls) */}
+        <CommunityInfo scope="place" entityId={place.id} />
+
+        <RatingSummary
+          rating={currentPlace?.rating ?? 0}
+          reviews={currentReviews}
+        />
 
         <ReviewsList
           reviews={currentReviews}

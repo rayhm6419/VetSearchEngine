@@ -5,13 +5,14 @@ import { useState, useEffect, useRef } from 'react';
 interface WriteReviewModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onSubmit: (rating: number, text: string) => void;
+  onSubmit: (rating: number, text: string, firstVisitFree?: 'yes' | 'no' | null) => void;
 }
 
 export default function WriteReviewModal({ isOpen, onClose, onSubmit }: WriteReviewModalProps) {
   const [rating, setRating] = useState(0);
   const [text, setText] = useState('');
   const [hoveredRating, setHoveredRating] = useState(0);
+  const [firstVisit, setFirstVisit] = useState<'yes' | 'no' | ''>('');
   const modalRef = useRef<HTMLDivElement>(null);
   const firstFocusableRef = useRef<HTMLTextAreaElement>(null);
 
@@ -48,9 +49,10 @@ export default function WriteReviewModal({ isOpen, onClose, onSubmit }: WriteRev
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (rating > 0 && text.trim()) {
-      onSubmit(rating, text.trim());
+      onSubmit(rating, text.trim(), firstVisit === '' ? null : firstVisit);
       setRating(0);
       setText('');
+      setFirstVisit('');
       onClose();
     }
   };
@@ -105,6 +107,33 @@ export default function WriteReviewModal({ isOpen, onClose, onSubmit }: WriteRev
                 {rating} star{rating !== 1 ? 's' : ''}
               </p>
             )}
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Was your first visit free? (optional)
+            </label>
+            <div className="flex items-center gap-3">
+              <button
+                type="button"
+                onClick={() => setFirstVisit('yes')}
+                className={`px-3 py-2 rounded-lg text-sm border ${firstVisit === 'yes' ? 'bg-green-600 text-white border-green-600' : 'bg-white text-gray-700 hover:bg-gray-50'}`}
+              >
+                Yes
+              </button>
+              <button
+                type="button"
+                onClick={() => setFirstVisit('no')}
+                className={`px-3 py-2 rounded-lg text-sm border ${firstVisit === 'no' ? 'bg-red-600 text-white border-red-600' : 'bg-white text-gray-700 hover:bg-gray-50'}`}
+              >
+                No
+              </button>
+              {firstVisit !== '' && (
+                <button type="button" onClick={() => setFirstVisit('')} className="text-sm text-gray-600 underline">
+                  Clear
+                </button>
+              )}
+            </div>
           </div>
 
           <div>

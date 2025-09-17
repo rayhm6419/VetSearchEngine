@@ -35,3 +35,9 @@ export interface Review {
   text: string;
 }
 export type PlaceSortOption = 'distance' | 'rating';
+
+// InfoCard types
+export interface InfoCardData {
+  firstVisitFree: { yes: number; no: number; confidence: 'low' | 'medium' | 'high' };
+  topDoctors: Array<{ name: string; recCount: number }>;
+}

@@ -1,9 +1,10 @@
-import { Place, Review } from '@/lib/types';
+import { Place, Review, InfoCardData } from '@/lib/types';
 import { headers } from 'next/headers';
 
 export type PlaceDetailsDTO = {
   place: Place | null;
   reviews: Review[];
+  infoCard?: InfoCardData;
 };
 
 export async function getPlaceDetails(id: string): Promise<PlaceDetailsDTO> {
@@ -18,14 +19,22 @@ export async function getPlaceDetails(id: string): Promise<PlaceDetailsDTO> {
   ]);
 
   let place: Place | null = null;
+  let infoCard: InfoCardData | undefined = undefined;
   if (placeRes.ok) {
     const pj = await placeRes.json();
-    if (pj?.ok) place = pj.data as Place;
+    if (pj?.ok) {
+      if (pj.data?.place) {
+        place = pj.data.place as Place;
+        infoCard = pj.data.infoCard as InfoCardData | undefined;
+      } else {
+        place = pj.data as Place;
+      }
+    }
   }
   let reviews: Review[] = [];
   if (reviewsRes.ok) {
     const rj = await reviewsRes.json();
     if (rj?.ok) reviews = (rj.data.items || []) as Review[];
   }
-  return { place, reviews };
+  return { place, reviews, infoCard };
 }

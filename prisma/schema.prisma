@@ -145,3 +145,135 @@ model Review {
   @@index([userId])
   @@index([externalSource, externalId])
 }
+
+// --- Community info (InfoCard) ---
+// Legacy per-attribute table kept for backward-compatibility
+model PlaceFirstVisitVote {
+  id        String   @id @default(cuid())
+  placeId   String
+  userId    String
+  value     Boolean  // true = Yes, false = No
+  createdAt DateTime @default(now())
+
+  place Place @relation(fields: [placeId], references: [id], onDelete: Cascade)
+  user  User  @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([placeId, userId])
+  @@index([placeId])
+  @@index([userId])
+}
+
+// New generic attribute voting
+enum PlaceAttribute {
+  FIRST_VISIT_FREE
+}
+
+model PlaceAttributeVote {
+  id        String         @id @default(cuid())
+  placeId   String
+  userId    String
+  attribute PlaceAttribute
+  // For FIRST_VISIT_FREE, true=yes false=no
+  boolValue Boolean
+  createdAt DateTime       @default(now())
+
+  place Place @relation(fields: [placeId], references: [id], onDelete: Cascade)
+  user  User  @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([placeId, userId, attribute])
+  @@index([placeId])
+  @@index([userId])
+}
+
+model Doctor {
+  id        String   @id @default(cuid())
+  placeId   String
+  name      String
+  createdAt DateTime @default(now())
+
+  place Place @relation(fields: [placeId], references: [id], onDelete: Cascade)
+  recs  DoctorRecommendation[]
+
+  @@unique([placeId, name])
+  @@index([placeId])
+}
+
+model DoctorRecommendation {
+  id        String   @id @default(cuid())
+  doctorId  String?
+  // legacy columns (nullable to preserve data)
+  placeId   String?
+  name      String?
+  userId    String
+  reason    String?
+  createdAt DateTime @default(now())
+
+  doctor Doctor? @relation(fields: [doctorId], references: [id], onDelete: Cascade)
+  // legacy relation
+  place  Place?  @relation(fields: [placeId], references: [id], onDelete: Cascade)
+  user   User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([doctorId, userId])
+  @@index([doctorId])
+  @@index([placeId])
+  @@index([userId])
+}
+
+// --- External-keyed community info for shelters (Petfinder) ---
+model ShelterAttributeVote {
+  id             String   @id @default(cuid())
+  externalSource String
+  externalId     String
+  userId         String
+  key            String
+  value          String
+  createdAt      DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([externalSource, externalId, userId, key])
+  @@index([externalSource, externalId, key])
+}
+
+model ShelterDoctor {
+  id             String   @id @default(cuid())
+  externalSource String
+  externalId     String
+  name           String
+  title          String?
+  avatarUrl      String?
+  recCount       Int      @default(0)
+  createdAt      DateTime @default(now())
+
+  recs ShelterDoctorRecommendation[]
+
+  @@unique([externalSource, externalId, name])
+  @@index([externalSource, externalId])
+}
+
+model ShelterDoctorRecommendation {
+  id        String   @id @default(cuid())
+  doctorId  String
+  userId    String
+  reason    String?
+  createdAt DateTime @default(now())
+
+  doctor ShelterDoctor @relation(fields: [doctorId], references: [id], onDelete: Cascade)
+  user   User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([doctorId, userId])
+}
+
+model ShelterAggregate {
+  id                   String   @id @default(cuid())
+  externalSource       String
+  externalId           String
+  firstVisitFreeYes    Int      @default(0)
+  firstVisitFreeNo     Int      @default(0)
+  firstVisitFreeScore  Float    @default(0)
+  firstVisitConfidence Float    @default(0)
+  topDoctorsJson       Json?
+  updatedAt            DateTime @updatedAt
+
+  @@unique([externalSource, externalId])
+}

@@ -5,6 +5,7 @@ import { AppError } from '@/server/http/errors';
 import { ShelterIdParamSchema } from '@/server/validation/shelter.schema';
 import { getOrganization } from '@/server/petfinder/client';
 import { toPlaceDTO } from '@/server/petfinder/mappers';
+import { shelterService } from '@/server/services/shelterService';
 
 export async function GET(_req: NextRequest, ctx: any) {
   return withRequestLog('GET /api/shelters/[id]', async () => {
@@ -16,7 +17,8 @@ export async function GET(_req: NextRequest, ctx: any) {
       const org = await getOrganization(parsed.data.id);
       if (!org) return apiError('NOT_FOUND', 'Shelter not found', 404);
       const dto = toPlaceDTO(org);
-      const res = apiResponse(dto);
+      const info = await shelterService.getInfo(parsed.data.id);
+      const res = apiResponse({ shelter: dto, infoCard: info.infoCard });
       res.headers.set('Cache-Control', 'public, s-maxage=300, stale-while-revalidate=300');
       return res;
     } catch (e: any) {

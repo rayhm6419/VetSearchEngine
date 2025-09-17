@@ -1,12 +1,11 @@
 import { Review } from '@/lib/types';
 
 interface RatingSummaryProps {
-  rating: number;
-  reviewCount: number;
+  rating?: number;
   reviews: Review[];
 }
 
-export default function RatingSummary({ rating, reviewCount, reviews }: RatingSummaryProps) {
+export default function RatingSummary({ rating, reviews }: RatingSummaryProps) {
   const getRatingDistribution = () => {
     const distribution = { 5: 0, 4: 0, 3: 0, 2: 0, 1: 0 };
     
@@ -21,13 +20,14 @@ export default function RatingSummary({ rating, reviewCount, reviews }: RatingSu
 
   const distribution = getRatingDistribution();
   const totalReviews = reviews.length;
+  const avg = typeof rating === 'number' && !Number.isNaN(rating) ? Math.max(0, Math.min(5, rating)) : 0;
 
   const renderStars = (rating: number) => {
     return Array.from({ length: 5 }, (_, i) => (
       <span
         key={i}
         className={`text-2xl ${
-          i < Math.floor(rating) ? 'text-yellow-400' : 'text-gray-300'
+          i < Math.floor(avg) ? 'text-yellow-400' : 'text-gray-300'
         }`}
       >
         ★
@@ -60,14 +60,12 @@ export default function RatingSummary({ rating, reviewCount, reviews }: RatingSu
         {/* Overall Rating */}
         <div className="text-center lg:text-left">
           <div className="flex items-center justify-center lg:justify-start gap-2 mb-2">
-            {renderStars(rating)}
+            {renderStars(avg)}
           </div>
           <div className="text-4xl font-bold text-gray-900 mb-1">
-            {rating.toFixed(1)}
+            {avg > 0 ? avg.toFixed(1) : '—'}
           </div>
-          <div className="text-gray-600">
-            {reviewCount} review{reviewCount !== 1 ? 's' : ''}
-          </div>
+          {/* Removed explicit review count display */}
         </div>
 
         {/* Rating Distribution */}
@@ -83,4 +81,3 @@ export default function RatingSummary({ rating, reviewCount, reviews }: RatingSu
     </div>
   );
 }
-

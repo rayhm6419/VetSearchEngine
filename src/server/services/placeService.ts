@@ -46,6 +46,101 @@ export const placeService = {
     return db ? mapPlace(db) : null;
   },
 
+  async getInfoCard(placeId: string): Promise<{
+    firstVisitFree: { yes: number; no: number; confidence: 'low' | 'medium' | 'high' };
+    topDoctors: Array<{ name: string; recCount: number }>;
+  }> {
+    // Prefer generic attribute votes; fall back to legacy table
+    let yesCount = 0, noCount = 0;
+    try {
+      yesCount = await prisma.placeAttributeVote.count({ where: { placeId, attribute: 'FIRST_VISIT_FREE', boolValue: true } as any });
+      noCount = await prisma.placeAttributeVote.count({ where: { placeId, attribute: 'FIRST_VISIT_FREE', boolValue: false } as any });
+    } catch {
+      yesCount = await prisma.placeFirstVisitVote.count({ where: { placeId, value: true } });
+      noCount = await prisma.placeFirstVisitVote.count({ where: { placeId, value: false } });
+    }
+    const total = yesCount + noCount;
+    const confidence: 'low' | 'medium' | 'high' = total >= 10 ? 'high' : total >= 3 ? 'medium' : 'low';
+
+    // Group doctor recommendations by name and take top 3
+    let topDoctors: Array<{ name: string; recCount: number }> = [];
+    try {
+      // New: aggregate through Doctor + DoctorRecommendation
+      const doctors = await prisma.doctor.findMany({
+        where: { placeId },
+        include: { recs: true },
+      });
+      if (doctors.length) {
+        topDoctors = doctors
+          .map((d: any) => ({ name: d.name, recCount: (d.recs || []).length }))
+          .sort((a, b) => b.recCount - a.recCount)
+          .slice(0, 3);
+      } else {
+        // Fallback legacy aggregation by free-text name
+        const grouped = await prisma.doctorRecommendation.groupBy({
+          by: ['name'],
+          where: { placeId },
+          _count: { name: true },
+          orderBy: { _count: { name: 'desc' } },
+          take: 3,
+        });
+        topDoctors = grouped.map((g) => ({ name: g.name!, recCount: (g as any)._count?.name || 0 }));
+      }
+    } catch {
+      topDoctors = [];
+    }
+
+    return { firstVisitFree: { yes: yesCount, no: noCount, confidence }, topDoctors };
+  },
+
+  async voteFirstVisitFree(placeId: string, userId: string, value: boolean): Promise<{ yes: number; no: number }> {
+    try {
+      // Upsert generic attribute
+      const existing = await prisma.placeAttributeVote.findFirst({ where: { placeId, userId, attribute: 'FIRST_VISIT_FREE' } as any });
+      if (existing) {
+        await prisma.placeAttributeVote.update({ where: { id: existing.id }, data: { boolValue: value } });
+      } else {
+        await prisma.placeAttributeVote.create({ data: { placeId, userId, attribute: 'FIRST_VISIT_FREE' as any, boolValue: value } });
+      }
+    } catch {
+      // Fallback to legacy table
+      const existing = await prisma.placeFirstVisitVote.findFirst({ where: { placeId, userId } });
+      if (existing) await prisma.placeFirstVisitVote.update({ where: { id: existing.id }, data: { value } });
+      else await prisma.placeFirstVisitVote.create({ data: { placeId, userId, value } });
+    }
+    const [yes, no] = await Promise.all([
+      prisma.placeAttributeVote.count({ where: { placeId, attribute: 'FIRST_VISIT_FREE', boolValue: true } as any }).catch(() => prisma.placeFirstVisitVote.count({ where: { placeId, value: true } })),
+      prisma.placeAttributeVote.count({ where: { placeId, attribute: 'FIRST_VISIT_FREE', boolValue: false } as any }).catch(() => prisma.placeFirstVisitVote.count({ where: { placeId, value: false } })),
+    ]);
+    return { yes, no };
+  },
+
+  async recommendDoctor(placeId: string, userId: string, name: string, reason?: string | null): Promise<Array<{ name: string; recCount: number }>> {
+    // Ensure Doctor exists (unique per placeId+name)
+    const doctor = await prisma.doctor.upsert({
+      where: { placeId_name: { placeId, name } },
+      update: {},
+      create: { placeId, name },
+    });
+    // One recommendation per user per doctor
+    await prisma.doctorRecommendation.upsert({
+      where: { doctorId_userId: { doctorId: doctor.id, userId } },
+      update: { reason: reason || undefined },
+      create: { doctorId: doctor.id, userId, reason: reason || undefined },
+    });
+    // Return top 3
+    const doctors = await prisma.doctor.findMany({ where: { placeId }, include: { recs: true } });
+    return doctors
+      .map((d: any) => ({ name: d.name, recCount: (d.recs || []).length }))
+      .sort((a, b) => b.recCount - a.recCount)
+      .slice(0, 3);
+  },
+
+  // Alias to existing aggregate
+  async recomputePlaceAggregates(placeId: string) {
+    return this.recomputeRating(placeId);
+  },
+
   async searchByZip({ zip, type, take = 50, skip = 0 }: { zip?: string; type?: 'vet' | 'shelter'; take?: number; skip?: number; }): Promise<Place[]> {
     const where = {
       ...(zip ? { zipcode: zip } : {}),

@@ -2,20 +2,22 @@
 
 import { useState } from 'react';
 import { formatDistanceMiles } from '@/lib/distance';
-import { Place, Review } from '@/lib/types';
+import { InfoCardData, Place, Review } from '@/lib/types';
 import RatingSummary from '@features/place/views/RatingSummary';
 import ReviewsList from '@features/place/views/ReviewsList';
 import WriteReviewModal from '@features/place/views/WriteReviewModal';
 import { useRouter } from 'next/navigation';
+import CommunityInfo from '@features/place/views/CommunityInfo';
 
 type Props = {
   shelter: Place | null;
   reviews: Review[];
   rating?: number;
   reviewCount?: number;
+  infoCard?: InfoCardData;
 };
 
-export default function ShelterDetailPage({ shelter, reviews, rating, reviewCount }: Props) {
+export default function ShelterDetailPage({ shelter, reviews, rating, reviewCount, infoCard }: Props) {
   const router = useRouter();
   const [modalOpen, setModalOpen] = useState(false);
   const [items, setItems] = useState<Review[]>(reviews || []);
@@ -91,8 +93,12 @@ export default function ShelterDetailPage({ shelter, reviews, rating, reviewCoun
           </div>
         </div>
 
-        {(summary.rating || summary.reviewCount) && (
-          <RatingSummary rating={summary.rating || 0} reviewCount={summary.reviewCount || 0} reviews={items} />
+        {/* Always show the star widget; empty/gray when no reviews */}
+        <RatingSummary rating={typeof summary.rating === 'number' ? summary.rating : 0} reviews={items} />
+
+        {/* Local, client-side community info for shelters */}
+        {shelter && (
+          <CommunityInfo scope="shelter" entityId={id} />
         )}
 
         <ReviewsList reviews={items} />

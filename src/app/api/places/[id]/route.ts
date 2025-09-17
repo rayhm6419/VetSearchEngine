@@ -15,7 +15,8 @@ export async function GET(_req: NextRequest, ctx: { params: Promise<{ id: string
       if (!parsed.success) return apiError('BAD_REQUEST', formatZodError(parsed.error), 400);
       const place = await placeService.getById(parsed.data.id);
       if (!place) return apiError('NOT_FOUND', 'Place not found', 404);
-      const res = apiResponse(place);
+      const infoCard = await placeService.getInfoCard(parsed.data.id);
+      const res = apiResponse({ place, infoCard });
       res.headers.set('Cache-Control', 'public, s-maxage=60, stale-while-revalidate=300');
       return res;
     } catch (e: any) {
