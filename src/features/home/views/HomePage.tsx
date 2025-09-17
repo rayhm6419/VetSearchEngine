@@ -9,8 +9,8 @@ export default function HomePage() {
   const router = useRouter();
 
   const handleZipSubmit = (zip: string) => {
-    // Default to shelters for ZIP search
-    router.push(`/search?zip=${zip}&type=shelter`);
+    // Default to showing both vets and shelters
+    router.push(`/search?zip=${zip}&type=all`);
   };
 
   return (
