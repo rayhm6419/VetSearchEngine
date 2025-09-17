@@ -13,19 +13,38 @@ function computeScore(yes: number, no: number) {
 export const shelterService = {
   async getInfo(externalId: string) {
     const externalSource = SRC as string;
-    // try cache
-    const agg = await p.shelterAggregate.findUnique({ where: { externalSource_externalId: { externalSource, externalId } } }).catch(() => null) as any;
-    let yes = 0, no = 0, topDoctors: Array<{ name: string; recCount: number }> = [];
+    let yes = 0;
+    let no = 0;
+    let topDoctors: Array<{ name: string; recCount: number }> = [];
+
+    let agg: any = null;
+    try {
+      agg = await p.shelterAggregate.findUnique({ where: { externalSource_externalId: { externalSource, externalId } } });
+    } catch (err) {
+      if (process.env.NODE_ENV !== 'production') console.warn('shelter_info_cache_error', err);
+    }
+
     if (agg) {
       yes = agg.firstVisitFreeYes || 0;
       no = agg.firstVisitFreeNo || 0;
-      try { if (agg.topDoctorsJson) topDoctors = agg.topDoctorsJson as any; } catch {}
+      try {
+        if (agg.topDoctorsJson) topDoctors = agg.topDoctorsJson as any;
+      } catch (err) {
+        if (process.env.NODE_ENV !== 'production') console.warn('shelter_info_cache_topDoctors_error', err);
+      }
     } else {
-      // compute fresh
-      yes = await p.shelterAttributeVote.count({ where: { externalSource, externalId, key: 'first_visit_free', value: 'yes' } });
-      no = await p.shelterAttributeVote.count({ where: { externalSource, externalId, key: 'first_visit_free', value: 'no' } });
-      const docs = await p.shelterDoctor.findMany({ where: { externalSource, externalId }, orderBy: { recCount: 'desc' }, take: 3 });
-      topDoctors = docs.map((d: any) => ({ name: d.name, recCount: d.recCount }));
+      try {
+        const [yesCount, noCount, docs] = await Promise.all([
+          p.shelterAttributeVote.count({ where: { externalSource, externalId, key: 'first_visit_free', value: 'yes' } }).catch(() => 0),
+          p.shelterAttributeVote.count({ where: { externalSource, externalId, key: 'first_visit_free', value: 'no' } }).catch(() => 0),
+          p.shelterDoctor.findMany({ where: { externalSource, externalId }, orderBy: { recCount: 'desc' }, take: 3 }).catch(() => []),
+        ]);
+        yes = yesCount;
+        no = noCount;
+        topDoctors = (docs as any[]).map((d: any) => ({ name: d.name, recCount: d.recCount }));
+      } catch (err) {
+        if (process.env.NODE_ENV !== 'production') console.warn('shelter_info_db_error', err);
+      }
     }
     const { score, confidence } = computeScore(yes, no);
     return { infoCard: { firstVisitFree: { yes, no, score, confidence: confidence < 0.4 ? 'low' : confidence < 0.7 ? 'medium' : 'high' as const }, topDoctors } };
