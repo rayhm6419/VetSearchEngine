@@ -1,3 +1,4 @@
+import Image from 'next/image';
 import { Place } from '@/lib/types';
 
 interface PhotoStripProps {
@@ -20,10 +21,12 @@ export default function PhotoStrip({ place }: PhotoStripProps) {
               key={index}
               className="flex-shrink-0 w-48 h-32 rounded-lg overflow-hidden"
             >
-              <img
+              <Image
                 src={photo}
                 alt={`${place.name} photo ${index + 1}`}
-                className="w-full h-full object-cover hover:scale-105 transition-transform duration-200"
+                width={192}
+                height={128}
+                className="h-full w-full object-cover transition-transform duration-200 hover:scale-105"
               />
             </div>
           ))}
@@ -32,4 +35,3 @@ export default function PhotoStrip({ place }: PhotoStripProps) {
     </div>
   );
 }
-

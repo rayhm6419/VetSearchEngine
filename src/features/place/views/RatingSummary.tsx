@@ -22,12 +22,12 @@ export default function RatingSummary({ rating, reviews }: RatingSummaryProps) {
   const totalReviews = reviews.length;
   const avg = typeof rating === 'number' && !Number.isNaN(rating) ? Math.max(0, Math.min(5, rating)) : 0;
 
-  const renderStars = (rating: number) => {
+  const renderStars = (value: number) => {
     return Array.from({ length: 5 }, (_, i) => (
       <span
         key={i}
         className={`text-2xl ${
-          i < Math.floor(avg) ? 'text-yellow-400' : 'text-gray-300'
+          i < Math.floor(value) ? 'text-yellow-400' : 'text-gray-300'
         }`}
       >
         ★

@@ -32,7 +32,11 @@ export default function InfoCard({ mode = 'place', entityId, data }: Props) {
 
   const vote = async (value: boolean) => {
     const prev = { yes, no };
-    value ? setYes((v) => v + 1) : setNo((v) => v + 1);
+    if (value) {
+      setYes((v) => v + 1);
+    } else {
+      setNo((v) => v + 1);
+    }
     setHasVoted(true);
     setSubmitting(true);
     try {

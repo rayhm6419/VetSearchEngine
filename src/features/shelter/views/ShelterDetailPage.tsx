@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { formatDistanceMiles } from '@/lib/distance';
-import { InfoCardData, Place, Review } from '@/lib/types';
+import { Place, Review } from '@/lib/types';
 import RatingSummary from '@features/place/views/RatingSummary';
 import ReviewsList from '@features/place/views/ReviewsList';
 import WriteReviewModal from '@features/place/views/WriteReviewModal';
@@ -14,10 +14,9 @@ type Props = {
   reviews: Review[];
   rating?: number;
   reviewCount?: number;
-  infoCard?: InfoCardData;
 };
 
-export default function ShelterDetailPage({ shelter, reviews, rating, reviewCount, infoCard }: Props) {
+export default function ShelterDetailPage({ shelter, reviews, rating, reviewCount }: Props) {
   const router = useRouter();
   const [modalOpen, setModalOpen] = useState(false);
   const [items, setItems] = useState<Review[]>(reviews || []);

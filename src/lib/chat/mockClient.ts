@@ -26,7 +26,7 @@ function pickResponse(prompt: string): string {
   return GENERIC;
 }
 
-export function startStream({ messages, context: _context }: { messages: Message[]; context?: ChatContext }): StreamHandle {
+export function startStream({ messages }: { messages: Message[]; context?: ChatContext }): StreamHandle {
   const last = messages[messages.length - 1];
   const text = pickResponse(last?.content || '');
   const tokens = text.split(/(\s+)/); // include spaces for smoother stream
@@ -58,12 +58,12 @@ export function startStream({ messages, context: _context }: { messages: Message
 }
 
 // Future adapter stub
-export async function requestChat({ messages, context: _context }: { messages: Array<{ role: string; content: string }>; context?: ChatContext }) {
+export async function requestChat({ messages }: { messages: Array<{ role: string; content: string }>; context?: ChatContext }) {
   console.log('requestChat (stub)', { messages });
   const encoder = new TextEncoder();
   const stream = new ReadableStream<Uint8Array>({
     start(controller) {
-      const handle = startStream({ messages: messages as any, context: _context });
+      const handle = startStream({ messages: messages as any });
       handle.onToken((t) => {
         controller.enqueue(encoder.encode(t));
       });

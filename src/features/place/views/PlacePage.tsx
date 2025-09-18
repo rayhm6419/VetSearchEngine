@@ -22,7 +22,7 @@ type Props = {
 
 import CommunityInfo from '@features/place/views/CommunityInfo';
 
-export default function PlacePageView({ place, reviews, infoCard }: Props) {
+export default function PlacePageView({ place, reviews }: Props) {
   const router = useRouter();
   const [loadingReviews, setLoadingReviews] = useState(false);
   const [reviewsError, setReviewsError] = useState(false);

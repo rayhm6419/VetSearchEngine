@@ -1,5 +1,6 @@
 "use client";
 
+import Image from 'next/image';
 import { Review } from '@/lib/types';
 import { useState } from 'react';
 
@@ -150,10 +151,12 @@ export default function ReviewsList({ reviews, loading, error, onRetry }: Review
             <div key={review.id} className="border-b border-gray-200 pb-4 last:border-b-0">
               <div className="flex items-center gap-3 mb-2">
                 {review.author.avatarUrl ? (
-                  <img
+                  <Image
                     src={review.author.avatarUrl}
                     alt={review.author.name}
-                    className="w-8 h-8 rounded-full object-cover"
+                    width={32}
+                    height={32}
+                    className="h-8 w-8 rounded-full object-cover"
                   />
                 ) : (
                   <div className="w-8 h-8 bg-gray-300 rounded-full flex items-center justify-center">

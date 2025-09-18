@@ -1,13 +1,17 @@
+import Image from 'next/image';
 import ShareIcon from './icons/ShareIcon';
 
 const Hero = () => {
   return (
     <section className="mx-auto mt-8 flex max-w-[1200px] overflow-hidden" style={{ height: 420 }}>
       <div className="relative flex-[0.55] overflow-hidden rounded-tl-[48px]">
-        <img
+        <Image
           src="/images/hero-shepherd.jpg"
           alt="German shepherd with flower on head"
-          className="h-full w-full object-cover object-center"
+          fill
+          priority
+          sizes="(min-width: 1024px) 55vw, 100vw"
+          className="object-cover object-center"
         />
       </div>
       <div className="flex flex-[0.45] flex-col justify-center bg-gradient-to-br from-white/90 to-[#F9F1EA] px-12">

@@ -1,3 +1,4 @@
+import { ReactNode } from 'react';
 import StarIcon from './icons/StarIcon';
 
 interface CardArticleProps {
@@ -8,7 +9,7 @@ interface CardArticleProps {
   compact?: boolean;
 }
 
-const illustrations: Record<CardArticleProps['illustration'], JSX.Element> = {
+const illustrations: Record<CardArticleProps['illustration'], ReactNode> = {
   dog: (
     <svg viewBox="0 0 160 140" className="h-full w-full">
       <rect width="160" height="140" rx="20" fill="#FFCFAD" />
