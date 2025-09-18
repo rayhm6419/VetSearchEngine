@@ -1,41 +1,82 @@
-"use client";
-
-import { useState } from 'react';
-import { useRouter } from 'next/navigation';
-import ZipPrompt from '@/components/ZipPrompt';
+import Navbar from '../components/Navbar';
+import Hero from '../components/Hero';
+import SearchCard from '../components/SearchCard';
+import MapPanel from '../components/MapPanel';
+import Section from '../components/Section';
+import CardArticle from '../components/CardArticle';
+import CardPlace from '../components/CardPlace';
+import Footer from '../components/Footer';
 
 export default function HomePage() {
-  const [showZipModal, setShowZipModal] = useState(false);
-  const router = useRouter();
-
-  const handleZipSubmit = (zip: string) => {
-    // Default to showing both vets and shelters
-    router.push(`/search?zip=${zip}&type=all`);
-  };
-
   return (
-    <>
-      <main className="min-h-dvh flex items-center justify-center px-6">
-        <div className="max-w-md w-full text-center space-y-4">
-          <h1 className="text-3xl font-bold">🐾 Pet Care Near Me</h1>
-          <p className="text-gray-600">
-            Find nearby vets & animal shelters quickly and easily.
-          </p>
-          <button
-            onClick={() => setShowZipModal(true)}
-            className="inline-block rounded-lg bg-black text-white px-5 py-3 text-sm hover:opacity-90"
-          >
-            Open Search
-          </button>
+    <div className="min-h-screen bg-[#FFFDFB] text-[color:var(--color-text)]">
+      <Navbar />
+      <main className="pt-[72px]">
+        <Hero />
+        <div className="flex flex-col items-center">
+          <div className="w-full max-w-[1200px] px-6 mt-12">
+            <div className="flex gap-8" style={{ height: 420 }}>
+              <div className="w-[360px]">
+                <SearchCard />
+              </div>
+              <div className="flex-1">
+                <MapPanel />
+              </div>
+            </div>
+          </div>
+
+          <div className="w-full max-w-[1200px] px-6">
+            <Section title="Top Rated in Your Area" topMargin={48}>
+              <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
+                <CardArticle
+                  title="Keeping Your Dog Hydrated"
+                  meta="4.8, mar1"
+                  illustration="dog"
+                  background="#FFE9D7"
+                />
+                <CardArticle
+                  title="Introducing a New Puppy to Your Home"
+                  meta="15.5 min"
+                  illustration="catHouse"
+                  background="#E8F4FF"
+                />
+                <CardPlace
+                  title="Greenfield Veterinarian Clinic"
+                  reads="48 read"
+                  image="https://images.unsplash.com/photo-1558944350-8f6f5e7f8f6f?q=80&w=1200&auto=format&fit=crop"
+                />
+              </div>
+            </Section>
+
+            <Section title="Pet Care & Adoption Tips">
+              <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
+                <CardArticle
+                  title="Daily Walk Checklist"
+                  meta="6 min read"
+                  illustration="blueDog"
+                  background="#E4F3FF"
+                  compact
+                />
+                <CardArticle
+                  title="Setting Up a Cozy Shelter"
+                  meta="8 min read"
+                  illustration="greenHouse"
+                  background="#EAF7E8"
+                  compact
+                />
+                <CardArticle
+                  title="Keeping Kittens Curious"
+                  meta="4 min read"
+                  illustration="orangeCat"
+                  background="#FFE9E4"
+                  compact
+                />
+              </div>
+            </Section>
+          </div>
         </div>
       </main>
-
-      {/* ZipPrompt Modal */}
-      <ZipPrompt
-        open={showZipModal}
-        onClose={() => setShowZipModal(false)}
-        onSubmit={handleZipSubmit}
-      />
-    </>
+      <Footer />
+    </div>
   );
 }

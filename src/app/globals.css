@@ -1,26 +1,37 @@
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
-}
-
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+  --color-primary: #FFA66E;
+  --color-primary-hover: #FF9856;
+  --color-accent: #173B5A;
+  --color-text: #2E3A47;
+  --color-subtle: #667085;
+  --color-card-bg: #FFFFFF;
+  --color-card-border: #EEF2F6;
+  --color-input-bg: #F7F9FC;
+  --color-map-water: #E9F1FF;
+  --color-map-land: #F7FAFF;
+  --color-shelter-pin: #FFA66E;
+  --color-vet-pin: #6EA8FF;
+  --color-star: #FFC148;
+  --color-badge: #F1F3F5;
+  --color-footer-bg: #FFF7F1;
+  --color-footer-border: #F5EDE7;
+  --shadow-soft: 0 8px 24px rgba(16, 24, 40, 0.08);
+  --shadow-tight: 0 6px 18px rgba(16, 24, 40, 0.06);
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  margin: 0;
+  background-color: #FFFDFB;
+  color: var(--color-text);
+  font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+}
+
+* {
+  outline-offset: 2px;
+}
+
+*:focus-visible {
+  outline: 2px solid var(--color-primary);
 }

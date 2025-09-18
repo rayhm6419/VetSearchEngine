@@ -36,12 +36,14 @@ export default function RootLayout({
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
         <Providers>
-          <NavBar />
-          <div className="pt-16">
-            {children}
+          <div className="hidden" aria-hidden="true">
+            <NavBar />
           </div>
-          <Footer />
-          
+          {children}
+          <div className="hidden" aria-hidden="true">
+            <Footer />
+          </div>
+
           <ChatFab />
           <ChatWrapper />
         </Providers>

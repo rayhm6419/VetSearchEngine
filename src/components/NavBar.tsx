@@ -91,7 +91,7 @@ export default function NavBar({ className }: NavBarProps) {
 					{/* Left: Logo */}
 					<Link href="/" className="text-base font-semibold flex items-center gap-2 focus:outline-none focus:ring-2 focus:ring-blue-500 rounded">
 						<span aria-hidden>🐾</span>
-						<span>PetCare</span>
+						<span>PawPoint</span>
 					</Link>
 
 					{/* Desktop Links */}
