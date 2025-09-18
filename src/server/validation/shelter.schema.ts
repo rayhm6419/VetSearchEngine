@@ -13,6 +13,7 @@ export const ListShelterReviewsQuerySchema = z.object({
 export const CreateShelterReviewBodySchema = z.object({
   rating: z.coerce.number().int().min(1).max(5),
   text: z.string().min(1).max(2000),
+  recommended: z.boolean(),
 });
 
 export type ShelterIdParam = z.infer<typeof ShelterIdParamSchema>;

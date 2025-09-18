@@ -39,14 +39,19 @@ export default function ShelterDetailPage({ shelter, reviews, rating, reviewCoun
 
   const id = shelter.externalId || shelter.id.replace(/^petfinder:/, '');
 
-  const onSubmit = async (rating: number, text: string) => {
+  const onSubmit = async (
+    rating: number,
+    text: string,
+    _firstVisitFree?: 'yes' | 'no' | null,
+    recommended?: boolean | null,
+  ) => {
     setSubmitting(true);
     setError(null);
     try {
       const res = await fetch(`/api/shelters/${id}/reviews`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ rating, text }),
+        body: JSON.stringify({ rating, text, recommended }),
       });
       const json = await res.json().catch(() => null);
       if (!res.ok || !json?.ok) throw new Error(json?.error?.message || `Failed (${res.status})`);

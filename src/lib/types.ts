@@ -33,6 +33,7 @@ export interface Review {
   rating: number;            // 1–5
   date: string;              // ISO
   text: string;
+  recommended?: boolean;     // true = recommend, false = not recommend
 }
 export type PlaceSortOption = 'distance' | 'rating';
 

@@ -5,7 +5,7 @@ import { useState, useEffect, useRef } from 'react';
 interface WriteReviewModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onSubmit: (rating: number, text: string, firstVisitFree?: 'yes' | 'no' | null) => void;
+  onSubmit: (rating: number, text: string, firstVisitFree?: 'yes' | 'no' | null, recommended?: boolean | null) => void;
 }
 
 export default function WriteReviewModal({ isOpen, onClose, onSubmit }: WriteReviewModalProps) {
@@ -13,12 +13,23 @@ export default function WriteReviewModal({ isOpen, onClose, onSubmit }: WriteRev
   const [text, setText] = useState('');
   const [hoveredRating, setHoveredRating] = useState(0);
   const [firstVisit, setFirstVisit] = useState<'yes' | 'no' | ''>('');
+  const [recommendChoice, setRecommendChoice] = useState<'recommend' | 'not' | null>(null);
   const modalRef = useRef<HTMLDivElement>(null);
   const firstFocusableRef = useRef<HTMLTextAreaElement>(null);
 
   useEffect(() => {
     if (isOpen && firstFocusableRef.current) {
       firstFocusableRef.current.focus();
+    }
+  }, [isOpen]);
+
+  useEffect(() => {
+    if (!isOpen) {
+      setRating(0);
+      setHoveredRating(0);
+      setText('');
+      setFirstVisit('');
+      setRecommendChoice(null);
     }
   }, [isOpen]);
 
@@ -48,11 +59,18 @@ export default function WriteReviewModal({ isOpen, onClose, onSubmit }: WriteRev
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (rating > 0 && text.trim()) {
-      onSubmit(rating, text.trim(), firstVisit === '' ? null : firstVisit);
+    if (rating > 0 && text.trim() && recommendChoice !== null) {
+      onSubmit(
+        rating,
+        text.trim(),
+        firstVisit === '' ? null : firstVisit,
+        recommendChoice === null ? null : recommendChoice === 'recommend'
+      );
       setRating(0);
+      setHoveredRating(0);
       setText('');
       setFirstVisit('');
+      setRecommendChoice(null);
       onClose();
     }
   };
@@ -137,6 +155,41 @@ export default function WriteReviewModal({ isOpen, onClose, onSubmit }: WriteRev
           </div>
 
           <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Would you recommend this vet?
+            </label>
+            <div className="flex items-center justify-center gap-3">
+              <button
+                type="button"
+                onClick={() => setRecommendChoice('recommend')}
+                className={`flex-1 px-3 py-2 rounded-lg text-sm border ${
+                  recommendChoice === 'recommend'
+                    ? 'bg-green-600 text-white border-green-600'
+                    : 'bg-white text-gray-700 hover:bg-gray-50'
+                }`}
+              >
+                Recommend
+              </button>
+              <button
+                type="button"
+                onClick={() => setRecommendChoice('not')}
+                className={`flex-1 px-3 py-2 rounded-lg text-sm border ${
+                  recommendChoice === 'not'
+                    ? 'bg-red-600 text-white border-red-600'
+                    : 'bg-white text-gray-700 hover:bg-gray-50'
+                }`}
+              >
+                Not recommend
+              </button>
+            </div>
+            {recommendChoice === null && (
+              <p className="text-xs text-gray-500 mt-2 text-center">
+                Select an option to help others understand your experience.
+              </p>
+            )}
+          </div>
+
+          <div>
             <label htmlFor="review-text" className="block text-sm font-medium text-gray-700 mb-2">
               Your review
             </label>
@@ -162,9 +215,9 @@ export default function WriteReviewModal({ isOpen, onClose, onSubmit }: WriteRev
             </button>
             <button
               type="submit"
-              disabled={rating === 0 || !text.trim()}
+              disabled={rating === 0 || !text.trim() || recommendChoice === null}
               className={`px-4 py-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 ${
-                rating > 0 && text.trim()
+                rating > 0 && text.trim() && recommendChoice !== null
                   ? 'bg-black text-white hover:bg-gray-800'
                   : 'bg-gray-300 text-gray-500 cursor-not-allowed'
               }`}

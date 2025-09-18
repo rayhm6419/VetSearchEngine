@@ -17,6 +17,7 @@ export const reviewService = {
       rating: db.rating,
       date: db.createdAt.toISOString(),
       text: db.text,
+      recommended: typeof db.recommended === 'boolean' ? db.recommended : undefined,
     }));
     const agg = await prisma.review.aggregate({
       where: { externalSource: ExternalSource.petfinder, externalId },
@@ -28,16 +29,23 @@ export const reviewService = {
     return { reviews, rating, reviewCount };
   },
 
-  async createForExternal({ userId, externalId, rating, text }: { userId: string; externalId: string; rating: number; text: string; }) {
+  async createForExternal({ userId, externalId, rating, text, recommended }: { userId: string; externalId: string; rating: number; text: string; recommended?: boolean | null; }) {
     const row = await prisma.review.create({
-      data: { userId, externalSource: ExternalSource.petfinder, externalId, rating, text },
+      data: {
+        userId,
+        externalSource: ExternalSource.petfinder,
+        externalId,
+        rating,
+        text,
+        recommended: typeof recommended === 'boolean' ? recommended : null,
+      },
     });
     return row;
   },
 
-  async createReview({ placeId, userId, rating, text }: { placeId: string; userId: string; rating: number; text: string; }): Promise<UIReview> {
+  async createReview({ placeId, userId, rating, text, recommended }: { placeId: string; userId: string; rating: number; text: string; recommended?: boolean | null; }): Promise<UIReview> {
     const row = await prisma.review.create({
-      data: { placeId, userId, rating, text },
+      data: { placeId, userId, rating, text, recommended: typeof recommended === 'boolean' ? recommended : null },
       include: { user: true },
     });
     const authorName = row.user?.username || row.user?.email || 'Anonymous';
@@ -47,6 +55,7 @@ export const reviewService = {
       rating: row.rating,
       date: row.createdAt.toISOString(),
       text: row.text,
+      recommended: typeof row.recommended === 'boolean' ? row.recommended : undefined,
     };
     return ui;
   },

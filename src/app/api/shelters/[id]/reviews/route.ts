@@ -41,7 +41,13 @@ export async function POST(req: NextRequest, ctx: any) {
       const b = CreateShelterReviewBodySchema.safeParse(body);
       if (!b.success) return apiError('BAD_REQUEST', 'Invalid body', 400);
 
-      await reviewService.createForExternal({ userId: user.id, externalId: p.data.id, rating: b.data.rating, text: b.data.text });
+      await reviewService.createForExternal({
+        userId: user.id,
+        externalId: p.data.id,
+        rating: b.data.rating,
+        text: b.data.text,
+        recommended: b.data.recommended,
+      });
       const { reviews, rating, reviewCount } = await reviewService.listForExternal('petfinder', p.data.id, 20, 0);
       return apiResponse({ items: reviews, summary: { rating, reviewCount } });
     } catch (e: any) {

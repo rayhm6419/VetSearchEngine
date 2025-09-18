@@ -162,42 +162,48 @@ export const REVIEWS: Review[] = [
     author: { name: "Sarah Johnson", avatarUrl: "https://images.unsplash.com/photo-1494790108755-2616b612b786?w=40" },
     rating: 5,
     date: "2024-01-15T10:30:00Z",
-    text: "Excellent care for my dog! The staff was very professional and caring. The vet took time to explain everything clearly and my dog felt comfortable throughout the visit."
+    text: "Excellent care for my dog! The staff was very professional and caring. The vet took time to explain everything clearly and my dog felt comfortable throughout the visit.",
+    recommended: true,
   },
   {
     id: "r2",
     author: { name: "Mike Chen" },
     rating: 4,
     date: "2024-01-12T14:20:00Z",
-    text: "Great service overall. The waiting time was a bit long but the care was worth it. My cat's dental procedure went smoothly."
+    text: "Great service overall. The waiting time was a bit long but the care was worth it. My cat's dental procedure went smoothly.",
+    recommended: true,
   },
   {
     id: "r3",
     author: { name: "Emily Rodriguez", avatarUrl: "https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=40" },
     rating: 5,
     date: "2024-01-10T09:15:00Z",
-    text: "Amazing experience! The emergency care saved my pet's life. Highly recommend this clinic for any pet emergencies."
+    text: "Amazing experience! The emergency care saved my pet's life. Highly recommend this clinic for any pet emergencies.",
+    recommended: true,
   },
   {
     id: "r4",
     author: { name: "David Kim" },
     rating: 3,
     date: "2024-01-08T16:45:00Z",
-    text: "Good care but a bit expensive. The staff was friendly and knowledgeable. The facility is clean and well-maintained."
+    text: "Good care but a bit expensive. The staff was friendly and knowledgeable. The facility is clean and well-maintained.",
+    recommended: false,
   },
   {
     id: "r5",
     author: { name: "Lisa Thompson", avatarUrl: "https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=40" },
     rating: 4,
     date: "2024-01-05T11:30:00Z",
-    text: "Professional staff and clean facility. My dog was nervous but they made him feel comfortable. Would definitely return."
+    text: "Professional staff and clean facility. My dog was nervous but they made him feel comfortable. Would definitely return.",
+    recommended: true,
   },
   {
     id: "r6",
     author: { name: "Robert Wilson" },
     rating: 5,
     date: "2024-01-03T13:20:00Z",
-    text: "Outstanding service! The vet was thorough in the examination and explained everything in detail. My pet is in great hands here."
+    text: "Outstanding service! The vet was thorough in the examination and explained everything in detail. My pet is in great hands here.",
+    recommended: true,
   },
   {
     id: "r7",

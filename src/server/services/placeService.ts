@@ -37,6 +37,7 @@ function mapReview(db: any): UIReview {
     rating: db.rating,
     date: db.createdAt.toISOString(),
     text: db.text,
+    recommended: typeof db.recommended === 'boolean' ? db.recommended : undefined,
   };
 }
 

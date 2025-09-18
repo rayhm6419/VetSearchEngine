@@ -62,6 +62,7 @@ export async function POST(req: NextRequest, ctx: { params: Promise<{ id: string
       const bodyParsed = CreateReviewBodySchema.safeParse({
         rating: body?.rating,
         text: String(body?.text || '').trim(),
+        recommended: typeof body?.recommended === 'boolean' ? body.recommended : undefined,
       });
       if (!bodyParsed.success) return apiError('BAD_REQUEST', formatZodError(bodyParsed.error), 400);
 
@@ -75,6 +76,7 @@ export async function POST(req: NextRequest, ctx: { params: Promise<{ id: string
         userId,
         rating: bodyParsed.data.rating,
         text: cleanText,
+        recommended: bodyParsed.data.recommended,
       });
       const { rating, reviewCount } = await placeService.recomputeRating(idParsed.data.id);
 

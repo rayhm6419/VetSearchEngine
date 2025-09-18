@@ -64,16 +64,24 @@ export default function PlacePageView({ place, reviews, infoCard }: Props) {
     setTimeout(() => setLoadingReviews(false), 400);
   };
 
-  const handleSubmitReview = async (rating: number, text: string, firstVisitFree?: 'yes' | 'no' | null) => {
+  const handleSubmitReview = async (
+    rating: number,
+    text: string,
+    firstVisitFree?: 'yes' | 'no' | null,
+    recommended?: boolean | null,
+  ) => {
     if (!currentPlace?.id) return;
     setSubmitError(null);
     setSubmittingReview(true);
     try {
+      const payload: Record<string, unknown> = { rating, text };
+      if (typeof recommended === 'boolean') payload.recommended = recommended;
+
       const res = await fetch(`/api/places/${currentPlace.id}/reviews`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         credentials: 'same-origin',
-        body: JSON.stringify({ rating, text }),
+        body: JSON.stringify(payload),
       });
       const json = await res.json().catch(() => null);
       if (!res.ok || !json?.ok) {

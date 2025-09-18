@@ -13,6 +13,7 @@ interface ReviewsListProps {
 export default function ReviewsList({ reviews, loading, error, onRetry }: ReviewsListProps) {
   const [expandedReviews, setExpandedReviews] = useState<Set<string>>(new Set());
   const [currentPage, setCurrentPage] = useState(1);
+  const [filter, setFilter] = useState<'all' | 'recommended' | 'not'>('all');
   const pageSize = 5;
 
   const toggleExpanded = (reviewId: string) => {
@@ -50,8 +51,14 @@ export default function ReviewsList({ reviews, loading, error, onRetry }: Review
     ));
   };
 
-  const paginatedReviews = reviews.slice(0, currentPage * pageSize);
-  const hasMore = reviews.length > currentPage * pageSize;
+  const filteredReviews = reviews.filter((review) => {
+    if (filter === 'recommended') return review.recommended === true;
+    if (filter === 'not') return review.recommended === false;
+    return true;
+  });
+
+  const paginatedReviews = filteredReviews.slice(0, currentPage * pageSize);
+  const hasMore = filteredReviews.length > currentPage * pageSize;
 
   if (loading) {
     return (
@@ -107,7 +114,30 @@ export default function ReviewsList({ reviews, loading, error, onRetry }: Review
   return (
     <div className="bg-white rounded-lg shadow-lg p-6 mb-6" aria-live="polite">
       <h2 className="text-xl font-semibold text-gray-900 mb-4">Reviews</h2>
-      
+      <div className="flex flex-wrap gap-2 mb-6" role="group" aria-label="Review filters">
+        {[
+          { key: 'all' as const, label: 'All' },
+          { key: 'recommended' as const, label: 'Recommended' },
+          { key: 'not' as const, label: 'Not recommended' },
+        ].map((option) => (
+          <button
+            key={option.key}
+            type="button"
+            onClick={() => {
+              setCurrentPage(1);
+              setFilter(option.key);
+            }}
+            className={`px-3 py-1.5 rounded-full text-sm border transition-colors ${
+              filter === option.key
+                ? 'bg-black text-white border-black'
+                : 'bg-white text-gray-700 border-gray-200 hover:bg-gray-100'
+            }`}
+          >
+            {option.label}
+          </button>
+        ))}
+      </div>
+
       <div className="space-y-6">
         {paginatedReviews.map((review) => {
           const isExpanded = expandedReviews.has(review.id);
@@ -141,6 +171,15 @@ export default function ReviewsList({ reviews, loading, error, onRetry }: Review
                     <span className="text-sm text-gray-500">
                       {formatDate(review.date)}
                     </span>
+                    {typeof review.recommended === 'boolean' && (
+                      <span
+                        className={`inline-flex items-center text-xs font-medium px-2 py-0.5 rounded-full ${
+                          review.recommended ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'
+                        }`}
+                      >
+                        {review.recommended ? 'Recommended' : 'Not recommended'}
+                      </span>
+                    )}
                   </div>
                 </div>
               </div>
@@ -171,6 +210,10 @@ export default function ReviewsList({ reviews, loading, error, onRetry }: Review
             Load More Reviews
           </button>
         </div>
+      )}
+
+      {filteredReviews.length === 0 && (
+        <p className="text-sm text-gray-600 mt-4">No reviews match this filter yet.</p>
       )}
     </div>
   );

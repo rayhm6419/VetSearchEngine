@@ -101,6 +101,7 @@ async function main() {
           userId: demoUser.id,
           rating: Math.max(1, Math.min(5, r.rating)),
           text: r.text,
+          recommended: typeof r.recommended === 'boolean' ? r.recommended : null,
           createdAt: new Date(r.date),
         },
       });
